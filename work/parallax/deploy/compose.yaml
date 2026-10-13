@@ -1,0 +1,84 @@
+name: ropad
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: ropad-runtime:local
+    # Fixed name prevents accidental --scale app=2 with one file-backed ledger.
+    container_name: ropad-runtime
+    init: true
+    restart: unless-stopped
+    stop_signal: SIGTERM
+    stop_grace_period: 5m
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    environment:
+      NODE_ENV: production
+      PORT: "61281"
+      PARALLAX_STATE_DIR: /var/lib/ropad
+      ROPAD_BIND_HOST: 0.0.0.0
+      ROPAD_PUBLIC_ORIGIN: ${ROPAD_PUBLIC_ORIGIN:?Set the canonical HTTPS application origin}
+      ROPAD_DOMAIN: ${ROPAD_DOMAIN:?Set the hostname matching ROPAD_PUBLIC_ORIGIN}
+      # Explicit 0 overrides any mainnetEnabled value in a restored config.
+      ROPAD_SOLANA_MAINNET_ENABLED: ${ROPAD_SOLANA_MAINNET_ENABLED:-0}
+      ROPAD_SOLANA_RPC_URL: ${ROPAD_SOLANA_RPC_URL:-https://api.mainnet-beta.solana.com}
+      ROPAD_OPERATOR_WALLETS: ${ROPAD_OPERATOR_WALLETS:-}
+      ROPAD_PROVIDER_ACCOUNT_ID: ${ROPAD_PROVIDER_ACCOUNT_ID:-}
+      PARALLAX_AI_PROVIDER: openrouter
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MANAGEMENT_KEY: ${OPENROUTER_MANAGEMENT_KEY:-}
+      ROBLOX_OPEN_CLOUD_API_KEY: ${ROBLOX_OPEN_CLOUD_API_KEY:-}
+      ROBLOX_OAUTH_CLIENT_ID: ${ROBLOX_OAUTH_CLIENT_ID:-}
+      ROBLOX_OAUTH_CLIENT_SECRET: ${ROBLOX_OAUTH_CLIENT_SECRET:-}
+      ROBLOX_OAUTH_REDIRECT_URI: ${ROBLOX_OAUTH_REDIRECT_URI:-}
+      ROPAD_BUILD_OUTPUT_TOKENS: ${ROPAD_BUILD_OUTPUT_TOKENS:-6000}
+      ROPAD_BUILD_PLAN_CAP_USD: ${ROPAD_BUILD_PLAN_CAP_USD:-0.75}
+      ROPAD_AGENT_MAX_BUDGET_USD: ${ROPAD_AGENT_MAX_BUDGET_USD:-1}
+    volumes:
+      - ropad_private:/var/lib/ropad
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=64m,mode=1777
+    expose:
+      - "61281"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+  caddy:
+    image: caddy:2-alpine
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 30s
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      ROPAD_DOMAIN: ${ROPAD_DOMAIN:?Set the hostname matching ROPAD_PUBLIC_ORIGIN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+volumes:
+  # These names survive container/image replacement. Never use down --volumes.
+  ropad_private:
+    name: ropad_private
+  caddy_data:
+    name: ropad_caddy_data
+  caddy_config:
+    name: ropad_caddy_config

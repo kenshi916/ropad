@@ -1,0 +1,188 @@
+/* Ropad light palette: warm neutral surfaces, charcoal type, deliberate lime actions. */
+:root {
+  --rp-canvas:#f7f8f4; --rp-panel:#fff; --rp-panel-soft:#f2f3ef;
+  --rp-ink:#20231d; --rp-muted:#687066; --rp-line:#e0e3db;
+  --rp-accent:#e2f31c; --rp-green:#42632f;
+  --bg:var(--rp-canvas); --ink:var(--rp-ink); --muted:var(--rp-muted);
+  --line:var(--rp-line); --green:var(--rp-green); --dark:var(--rp-ink);
+  --b-cream:var(--rp-canvas); --b-ink:var(--rp-ink); --b-muted:var(--rp-muted);
+  --b-line:var(--rp-line); --b-lime:var(--rp-accent);
+  --sans:'Ropad Sans',Arial,sans-serif;
+  color-scheme:light;
+}
+body.builder-product {background:var(--rp-canvas);color:var(--rp-ink);font-family:var(--sans)}
+body.builder-product :is(button,input,select,textarea) {font-family:var(--sans)}
+body.builder-product :is(button,a,input,select,textarea):focus-visible {outline:2px solid #617c32;outline-offset:3px}
+body.builder-product ::selection {background:#e2f31c88;color:#20231d}
+body.builder-product .button {background:#fff;border-color:#d6dbcf;color:var(--rp-ink);border-radius:7px;font-family:var(--sans)}
+body.builder-product .button:hover {background:#eef1e8;border-color:#b5bea9}
+body.builder-product .button.primary {background:var(--rp-accent);border-color:var(--rp-accent);color:var(--rp-ink)}
+body.builder-product .button.primary:hover {background:#d7e815;border-color:#d7e815}
+body.builder-product .brand {color:var(--rp-ink);font-family:var(--sans)}
+body.builder-product :is(.brand .ropad-mark,.rp-token-credit>img) {filter:brightness(0) saturate(100%);opacity:.9}
+body.builder-product :is(.b-header,.s-header,.rp-discover-header) {background:#fffffff5;border-color:var(--rp-line)}
+body.builder-product .rp-discover-header .rp-launch-button {color:var(--rp-ink);background:var(--rp-accent);border-color:var(--rp-accent)}
+body.builder-product .rp-discover-header .rp-launch-button:hover {background:#d7e815}
+body.builder-product .rp-discover-header .b-wallet {background:#24271f;border-color:#24271f;color:#fff}
+body.builder-product .rp-discover-header .b-wallet:hover {background:#3c4135!important;color:#fff!important}
+body.builder-product .rp-header-search {background:var(--rp-panel-soft);border-color:var(--rp-line);color:var(--rp-muted)}
+body.builder-product .rp-header-search input {color:var(--rp-ink)}
+body.builder-product .rp-header-search input::placeholder {color:var(--rp-muted)}
+body.builder-product .rp-header-search kbd {background:#fff;border-color:#d8ddcf;color:var(--rp-muted)}
+body.builder-product :is(.rp-header-purpose,.b-product-name) {color:var(--rp-muted)}
+body.builder-product .rp-discover-header nav.s-nav :is(a,button) {color:#62695d}
+body.builder-product .rp-discover-header nav.s-nav a[aria-current=page] {color:var(--rp-ink);border-color:#8aab35}
+body.builder-product .rp-discover-header nav.s-nav :is(a,button):hover {color:var(--rp-ink)}
+body.builder-product .rp-nav-new {background:#f1f5df;color:#526827;border-color:#dce5bd}
+body.builder-product .rp-section-kicker {color:var(--rp-green)}
+body.builder-product .rp-discover-intro h1 {font-weight:600;color:var(--rp-ink)}
+body.builder-product :is(.rp-discover-intro p,.rp-section-heading h2>span,.rp-recent-caption div>span,.rp-recent-model,.rp-filter-details #s-directory-note,.rp-directory-legend,.rp-service-details,.b-footer) {color:var(--rp-muted)}
+body.builder-product :is(.rp-section-heading h2,.rp-recent-caption h3) {color:var(--rp-ink)}
+body.builder-product :is(.rp-text-link,.rp-section-heading>a,.rp-callout-action) {color:var(--rp-green)}
+body.builder-product :is(.rp-text-link,.rp-section-heading>a):hover {color:#263d19}
+body.builder-product .rp-recent-card {background:#fff;border-color:var(--rp-line);box-shadow:0 2px 3px #252b1603}
+body.builder-product .rp-recent-card:hover {border-color:#a6b390;box-shadow:0 4px 14px #252b1608}
+body.builder-product .rp-recent-model img {background:#f0f1ec}
+body.builder-product .rp-trending-callout {background:#f0f3e7;border-color:#dce3cc}
+body.builder-product .rp-trending-callout:hover {background:#eaf0de;border-color:#bac99e}
+body.builder-product .rp-trending-icon {background:#e9eece;border-color:#d4deb0;color:#4a652a}
+body.builder-product .rp-trending-callout strong {color:#303c24}
+body.builder-product .rp-trending-callout small {color:#66705c}
+body.builder-product .rp-discover .s-list-tabs button {background:#fff;border-color:var(--rp-line);color:#5e6657}
+body.builder-product .rp-discover .s-list-tabs button.active {background:#e9eecf;border-color:#d5dfa9;color:#35451f}
+body.builder-product .rp-discover .s-list-tabs button.active:after {display:none}
+body.builder-product .rp-discover .s-sort select {background:#fff;border-color:var(--rp-line);color:#4d5546}
+body.builder-product .rp-discover .s-provider-filters button {color:#62695d}
+body.builder-product .rp-discover .s-provider-filters button.active {background:#e9ece3;color:#303a26}
+body.builder-product .s-main.rp-discover:not(.b-studio-main) .s-stream-card {background:#fff;border-color:var(--rp-line)}
+body.builder-product .s-main.rp-discover:not(.b-studio-main) .s-stream-card:hover {background:#fdfefb;border-color:#a6b390}
+body.builder-product .rp-discover .s-stream-card .s-screen-surface {border-color:var(--rp-line)}
+body.builder-product .rp-discover :is(.s-token-name,.s-token-row h2,.s-token-row h3,.s-token-row strong) {color:var(--rp-ink)}
+body.builder-product .rp-discover :is(.s-token-symbol,.s-mcap>span,.s-card-meta>span:last-child,.s-current-task,.s-card-footer>span) {color:var(--rp-muted)}
+body.builder-product .rp-discover .s-mcap>strong {color:#3f562c}
+body.builder-product .s-main.rp-discover:not(.b-studio-main) .s-card-footer {border-color:var(--rp-line)}
+body.builder-product .s-main.rp-discover:not(.b-studio-main) .s-card-footer a {color:var(--rp-green)}
+body.builder-product :is(.rp-service-details,.b-footer) {border-color:var(--rp-line)}
+body.builder-product .rp-service-details .b-pool-status {background:#eef0e8;color:var(--rp-muted)}
+body.builder-product .rp-discover .b-empty {border-color:#cbd3bf;color:var(--rp-muted)}
+
+/* Coin pages retain the chart + trading layout with clear, light surfaces. */
+body.builder-product .rp-token-page {
+  --rp-bg:var(--rp-canvas);--rp-card:var(--rp-panel);--rp-edge:var(--rp-line);
+  --rp-text:var(--rp-ink);--rp-muted:#687066;--rp-accent:#e2f31c;
+  color:var(--rp-ink);font-family:var(--sans);
+}
+body.builder-product .rp-token-page :is(h1,h2,button,input,select,.r-token-market,.r-solana-panel) {font-family:var(--sans)}
+body.builder-product .rp-token-title h1 {font-weight:600;letter-spacing:-1.3px}
+body.builder-product :is(.rp-token-breadcrumb,.rp-token-breadcrumb a,.rp-token-ticker,.rp-token-price>span:first-child,.rp-token-price>strong small,.rp-token-price p,.rp-price-source) {color:var(--rp-muted)}
+body.builder-product :is(.rp-token-breadcrumb>span:last-child,.rp-token-price p b) {color:var(--rp-ink)}
+body.builder-product .rp-token-price>strong {font-family:var(--sans);font-variant-numeric:tabular-nums}
+body.builder-product .rp-token-avatar {background:#edf1da;color:#52632e;border-color:#d8dfc1}
+body.builder-product .rp-token-badges>span {background:#f0f2eb;border-color:#e0e5d6;color:#616c55}
+body.builder-product .rp-network-dot {background:#72904c}
+body.builder-product .rp-token-play {background:#eef3dc;border-color:#d5dfb8;color:#425c26}
+body.builder-product .rp-token-play:hover {background:#e5edc7}
+body.builder-product .rp-token-banner {background:#f0f3e7;border-color:#dce3cc}
+body.builder-product .rp-token-banner p {color:#536046}
+body.builder-product :is(.rp-token-banner>a,.rp-banner-icon,.rp-agent-mark) {color:var(--rp-green)}
+body.builder-product :is(.rp-card-heading h2,.rp-game-content h2,.rp-agent-model strong) {color:var(--rp-ink);font-family:var(--sans);font-weight:600}
+body.builder-product :is(.rp-game-content>p,.rp-game-note,.rp-agent-model div>span,.rp-agent-state,.rp-agent-note,.rp-build-progress,.rp-token-credit,.rp-token-credit small,.rp-activity-list article>div>span,.rp-activity-list time,.rp-token-details dt,.rp-trade-loading p,.rp-market-loading p,.rp-trade-loading span) {color:var(--rp-muted)}
+body.builder-product .rp-agent-model>img {background:#f4f4ef;border-color:var(--rp-line)}
+body.builder-product .rp-button-primary {background:var(--rp-accent);border-color:var(--rp-accent);color:var(--rp-ink)!important}
+body.builder-product .rp-button-primary:hover {background:#d7e815}
+body.builder-product :is(.rp-button-secondary,.rp-token-page button.rp-button-secondary) {background:#fff;border-color:#d4dbca;color:#3c4b2c}
+body.builder-product .rp-button-secondary:hover {background:#f0f3e8;border-color:#b9c5a7}
+body.builder-product .rp-build-progress progress,body.builder-product .rp-build-progress progress::-webkit-progress-bar {background:#e6eadf}
+body.builder-product .rp-build-progress progress::-webkit-progress-value {background:#809c49}
+body.builder-product :is(.rp-activity-list article,.rp-token-mint,.rp-token-header>[data-rp-price]) {border-color:var(--rp-line)}
+body.builder-product .rp-activity-marker {background:#eff3e3;border-color:#dce5c8;color:#527132}
+body.builder-product :is(.rp-activity-list p,.rp-token-details dd,.rp-token-mint code) {color:#424c39}
+body.builder-product :is(.rp-activity-empty p,.rp-activity-empty>span:last-child) {color:var(--rp-muted)}
+body.builder-product .rp-token-mint a {color:var(--rp-green)}
+
+/* Market data colors use sufficient contrast on a white plotting surface. */
+body.builder-product :is(.r-token-market,.rp-token-page .r-token-market,.r-trade-panel,.rp-token-page .r-trade-panel) {background:#fff;border-color:var(--rp-line);color:var(--rp-ink);box-shadow:0 2px 3px #252b1603}
+body.builder-product .rp-token-page :is(.r-market-heading,.r-market-headline>div>span,.r-market-headline h2 small,.r-market-facts,.r-market-observed,.r-market-source-note) {color:var(--rp-muted)}
+body.builder-product .rp-token-page .r-market-heading>span:first-child:after,
+body.builder-product .rp-token-page :is(.r-market-headline h2,.r-market-facts b) {color:var(--rp-ink)}
+body.builder-product .rp-token-page .r-market-chain b {background:#f1f4e7;border-color:#dde4cd;color:#5b6d3e}
+body.builder-product .rp-token-page .r-market-metrics {background:#f3f4ef;border-color:var(--rp-line)}
+body.builder-product .rp-token-page :is(.r-market-metrics button,.r-market-ranges button) {color:#687060}
+body.builder-product .rp-token-page :is(.r-market-metrics button[aria-pressed=true],.r-market-ranges button[aria-pressed=true]) {background:#fff;color:#3c5128;box-shadow:0 1px 3px #252b1610}
+body.builder-product .rp-token-page .r-market-empty {border-color:#e8ebe3;background-image:linear-gradient(#e0e3db80 1px,transparent 1px),linear-gradient(90deg,#e0e3db80 1px,transparent 1px)}
+body.builder-product .rp-token-page .r-market-empty:before {background:radial-gradient(ellipse at center,#fffffff5 12%,#ffffff50 77%)}
+body.builder-product .rp-token-page .r-market-empty-mark {background:#f3f6e7;border-color:#dce5c8;color:#63803e}
+body.builder-product .rp-token-page .r-market-empty strong {color:#49533f;font-weight:500}
+body.builder-product .rp-token-page .r-market-empty p {color:#748067}
+body.builder-product .r-market-grid line {stroke:#d9dfd0}
+body.builder-product .r-market-axis text {fill:#687060}
+body.builder-product .rp-token-page .r-market-line {stroke:#678a34}
+body.builder-product .rp-token-page .r-market-point {fill:#678a34;stroke:#fff}
+body.builder-product .rp-token-page .r-trade-panel>header {color:#69745f}
+body.builder-product .rp-token-page .r-trade-panel>header span {font:10px/1.5 var(--sans);color:#69745f;letter-spacing:.04em}
+body.builder-product .rp-token-page .r-trade-panel>header b {background:#f0f3e5;border-color:#dbe3c8;color:#5d723c}
+body.builder-product .rp-token-page :is(.r-sol-trade-heading h2,.r-sol-trade-heading strong,.r-sol-receive strong,.r-sol-unavailable strong) {color:var(--rp-ink)}
+body.builder-product .rp-token-page :is(.r-sol-trade-heading>span,.r-trade-amount,.r-sol-receive,.r-sol-receive>span,.r-sol-receive small,.r-trade-slippage,.r-sol-quote-note,.r-sol-unavailable p,.r-trade-network,.r-sol-trade-footer>span) {color:var(--rp-muted);font-family:var(--sans)}
+body.builder-product .rp-token-page .r-trade-tabs {background:#f0f2eb;border-color:var(--rp-line)}
+body.builder-product .rp-token-page .r-trade-tabs button {color:#6a735f}
+body.builder-product .rp-token-page .r-trade-tabs button[aria-selected=true] {background:#fff;color:#4c682d;box-shadow:0 1px 4px #2d361414}
+body.builder-product .rp-token-page .r-trade-tabs button[data-sol-side=sell][aria-selected=true] {background:#fff0ed;color:#9a4337}
+body.builder-product .rp-token-page .r-sol-amount-box {background:#fafbf7;border-color:#dbe1d2}
+body.builder-product .rp-token-page .r-trade-amount>span {background:#ecefe3;border-color:#dbe3ca;color:#51643c}
+body.builder-product .rp-token-page .r-trade-amount input {color:var(--rp-ink);font-family:var(--sans)}
+body.builder-product .rp-token-page .r-trade-amount input::placeholder {color:#a3ad98}
+body.builder-product .rp-token-page .r-sol-presets button {background:#fff;border-color:#dce2d4;color:#5b694b}
+body.builder-product .rp-token-page .r-sol-presets button span {color:#707c64}
+body.builder-product .rp-token-page :is(.r-sol-presets button,.r-trade-tabs button):disabled {opacity:.75}
+body.builder-product .rp-token-page :is(.r-sol-receive,.r-sol-unavailable,.r-sol-trade-footer) {border-color:var(--rp-line)}
+body.builder-product .rp-token-page .r-trade-slippage select {background:#fff;border-color:#d5ddca;color:#4b5f37}
+/* Legacy trade CSS uses !important for these actions; match it for consistent states. */
+body.builder-product .r-solana-panel .r-trade-submit {background:var(--rp-accent)!important;color:#273218!important;font-family:var(--sans)!important}
+body.builder-product .r-solana-panel .r-trade-submit:disabled {background:#e8ece1!important;color:#829072!important;opacity:1}
+body.builder-product .r-solana-panel .r-trade-submit.sell:not(:disabled) {background:#f5d4cc!important;color:#743d30!important}
+body.builder-product .rp-token-page .r-trade-link {color:var(--rp-green)}
+body.builder-product .rp-token-page .r-trade-quote {background:#f3f6e9;border-color:#d9e2c7}
+body.builder-product .rp-token-page :is(.r-trade-quote>span,.r-trade-quote dl>div,.r-trade-quote small) {color:#69775a}
+body.builder-product .rp-token-page .r-trade-quote dd {color:#354629}
+body.builder-product .rp-token-page .r-trade-feedback {color:#42632f}
+body.builder-product .rp-token-page .r-trade-feedback.is-error {color:#a34032}
+body.builder-product .rp-token-page .r-sol-unavailable strong {font:500 12px/1.5 var(--sans)}
+body.builder-product .rp-token-page .r-sol-unavailable p {font:11px/1.7 var(--sans)}
+body.builder-product .rp-token-page .r-trade-link {font:500 11px/1.7 var(--sans)}
+
+/* Play page: the game remains the colorful focal point. */
+body.builder-product .rp-play-page {--rp-play-line:var(--rp-line);--rp-play-muted:#687066;--rp-play-mint:#e2f31c;color:var(--rp-ink);font-family:var(--sans)}
+body.builder-product .rp-play-page :is(h1,h2) {font-family:var(--sans);font-weight:600}
+body.builder-product :is(.rp-play-kicker,.rp-play-nav>span,.rp-play-launch>p:not(.rp-play-release-note):not(.rp-play-access),.rp-play-release-note,.rp-play-model>div>span,.rp-play-facts dt,.rp-play-access,.rp-play-creator small,.rp-play-about>p) {color:var(--rp-muted)}
+body.builder-product :is(.rp-play-version,.rp-play-launch) {background:#fff;border-color:var(--rp-line);color:var(--rp-ink)}
+body.builder-product .rp-play-art {border-color:var(--rp-line)}
+body.builder-product .rp-play-art figcaption {background:#fff;border-color:var(--rp-line);color:var(--rp-muted)}
+body.builder-product .rp-play-art figcaption>span:last-child {color:var(--rp-muted)}
+body.builder-product .rp-play-state {color:#527134}
+body.builder-product .rp-play-page .rp-play-button {background:#fff;border-color:#d3dcc5;color:#3e502e;border-radius:7px}
+body.builder-product .rp-play-page .rp-play-button:hover {background:#f0f3e7;border-color:#b2c198}
+body.builder-product .rp-play-page .rp-play-button.primary {background:var(--rp-accent);border-color:var(--rp-accent);color:#273218}
+body.builder-product .rp-play-page .rp-play-button:disabled {background:#e8ece1;border-color:#dde3d4;color:#7b896a}
+body.builder-product .rp-play-model>img {background:#f2f3ee;border-color:var(--rp-line)}
+body.builder-product :is(.rp-play-model strong,.rp-play-facts dd,.rp-play-objective>p) {color:#46523b}
+body.builder-product :is(.rp-play-facts,.rp-play-access,.rp-play-creator,.rp-play-objective) {border-color:var(--rp-line)}
+body.builder-product .rp-play-download {color:var(--rp-green)!important}
+body.builder-product :is(.rp-play-nav>a:hover,.rp-play-objective>span) {color:var(--rp-green)}
+
+/* Trending: white financial summary and tables, untouched game artwork. */
+body.builder-product .rt-page {color:var(--rp-ink)}
+body.builder-product :is(.rt-eyebrow,.rt-heading h1>span,.rt-economy-title>a,.rt-disclosure a) {color:var(--rp-green)}
+body.builder-product :is(.rt-heading p,.rt-source-bar,.rt-source-bar a,.rt-refresh,.rt-economy-stat>span,.rt-economy-stat>small,.rt-economy>p,.rt-list-heading>div>span,.rt-table th,.rt-table td:first-child,.rt-game small,.rt-number,.rt-earnings,.rt-disclosure p,.rt-scope,.rt-mobile-label) {color:var(--rp-muted)}
+body.builder-product :is(.rt-back,.rt-economy,.rt-search,.rt-page .rt-sort select,.rt-disclosure,.rt-empty,.rt-loading) {background:#fff;border-color:var(--rp-line);color:var(--rp-muted)}
+body.builder-product .rt-back {color:var(--rp-green)}
+body.builder-product .rt-back:hover {background:#eff3e3;border-color:#c3d1aa}
+body.builder-product :is(.rt-source-bar,.rt-economy-stat,.rt-economy>p,.rt-table th,.rt-table td,.rt-table tr) {border-color:var(--rp-line)}
+body.builder-product :is(.rt-economy-title>strong,.rt-economy-stat>strong,.rt-game,.rt-disclosure strong,.rt-empty h3) {color:var(--rp-ink)}
+body.builder-product :is(.rt-game:hover strong,.rt-number strong) {color:#496b2c}
+body.builder-product .rt-page .rt-search input {color:var(--rp-ink)}
+body.builder-product .rt-table tr:hover td {background:#eef1e6}
+body.builder-product .rt-warning {background:#fff8e7;border-color:#ead9ae;color:#806325}
+body.builder-product .rt-warning button {color:#725015}
+body.builder-product .rt-disclosure-icon {color:#69755c;border-color:#a9b29e}
+
+@media(prefers-reduced-motion:reduce) {body.builder-product .rp-recent-card {transition:none}}

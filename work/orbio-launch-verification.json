@@ -1,0 +1,46 @@
+{
+  "checkedAt": "2026-10-06T20:27:32.411Z",
+  "type": "read-only verification",
+  "sentTransactions": 0,
+  "signedTransactions": 0,
+  "network": {
+    "chainId": 4663,
+    "chainHex": "0x1237",
+    "name": "Robinhood Chain",
+    "rpc": "https://rpc.mainnet.chain.robinhood.com",
+    "explorer": "https://robin.etherscan.io"
+  },
+  "sourceTransaction": "0x7f3fbcc37ea0955f064154eb92490e933df92129cbcf66ddedee55e2c7406440",
+  "sourceTransactionUrl": "https://robin.etherscan.io/tx/0x7f3fbcc37ea0955f064154eb92490e933df92129cbcf66ddedee55e2c7406440",
+  "sourceOwnerUsedOnlyForEthCall": "0x16afff28323a900da7ca394374f391dc75d08b6b",
+  "launchSelector": "0xa3a3ee69",
+  "calldataKeccak256": "0x6e2853c28b98a671be44248ea6776bcd019e33030dd6afd1314dee742d716874",
+  "vault": "0x0e1651aec67b2a049a4fa6aeb6c1c305aabfc35b",
+  "implementation": "0x862427215620dcbed7b60ab7b885ab33c622fb86",
+  "implementationCodeHash": "0x3aaef0af5bc806370d070e1229a714cfb31fc244a5f52f0562f97e5b0d7f542d",
+  "quote": {
+    "network": "Robinhood Chain",
+    "realFunds": true,
+    "pairToken": "0xaa07a0e9209e16ac99708c3ec70159c6ef3128a3",
+    "pairSymbol": "ORBIO",
+    "launchFeeWei": "500000000000000",
+    "estimatedGasWei": "99050796702000",
+    "estimatedTotalWei": "599050796702000",
+    "creatorTaxBps": 0,
+    "baseTradeFeeBps": 100,
+    "protocolFeeBps": 1000,
+    "conversionBps": 4000,
+    "creditBps": 3000,
+    "gatewayBps": 1000,
+    "economics": "0x76f9bdf52dc32785a65a0002574f7ce78999dc23c4595d70c156cf5758229f51",
+    "simulation": "passed",
+    "simulationIsNotALaunch": true,
+    "implementation": "0x862427215620dcbed7b60ab7b885ab33c622fb86",
+    "implementationCodeHash": "0x3aaef0af5bc806370d070e1229a714cfb31fc244a5f52f0562f97e5b0d7f542d"
+  },
+  "limitations": [
+    "No wallet-signed application launch or paid transaction was performed",
+    "Testnet vault, factory and ORBIO addresses are not available at their mainnet addresses",
+    "Orbio compute integration and successful AI inference are separate from token launch verification"
+  ]
+}

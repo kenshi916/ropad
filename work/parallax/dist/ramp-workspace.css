@@ -1,0 +1,132 @@
+/* Ropad's light product surfaces, shared with the Ramp-inspired directory.
+   Media and source-code canvases retain their own dark viewing surfaces. */
+body.builder-product :is(.b-detail-main,.b-studio-main,.rp-release-page,.rp-project-tools,.r-fees-panel){color:var(--rp-ink);font-family:var(--sans)}
+body.builder-product :is(.b-detail-title h1,.b-readiness-summary h2,.b-readiness-content h2,.b-readiness-content h3,.b-agent-composer h2,.b-agent-run h2,.b-delivery-panel h2,.b-coin-panel h2,.b-project-file h3,.b-panel-empty h3,.b-queue-panel h2,.b-studio-view-heading h2,.b-studio-next h2,.b-studio-empty h2,.b-plan-list h3){color:var(--rp-ink);font-family:var(--sans);font-weight:550}
+body.builder-product :is(.b-readiness-summary p,.b-readiness-content,.b-versions-content,.b-version-brief>p,.b-brief-panel>p,.b-agent-composer>p,.b-composer-readonly p,.b-agent-run>p,.b-delivery-panel p,.b-project-file p,.b-panel-empty p,.b-queue-panel p,.b-studio-toolbar p,.b-studio-next p,.b-studio-empty p,.b-studio-brief>p,.b-plan-list p){color:var(--rp-muted);font-family:var(--sans)}
+body.builder-product :is(.b-back,.b-text-button,.b-queue-actions .b-text-button,.b-art-actions .b-text-button){color:var(--rp-ink);font-family:var(--sans)}
+body.builder-product :is(.b-back,.b-text-button):hover{color:var(--rp-green)}
+body.builder-product :is(.b-detail-title h1>span,.b-detail-state,.b-owner-controls>span,.b-pool-status,.b-pool-status small,.b-pool-title,.b-readiness-note,.b-versions-content>p,.b-version-row small,.b-version-brief small,.b-creator-record small,.b-publication-note,.b-panel-footnote,.b-panel-heading,.b-panel-heading>span:last-child,.b-market>span,.b-coin-panel dt,.b-brief-panel dt,.b-owner-note,.b-project-file small,.b-agent-state,.b-agent-identity small,.b-agent-evidence-note,.b-agent-composer label,.b-agent-composer form>small,.b-agent-run label>span,.b-art-ratio,.b-art-note,.b-rail-muted,.b-studio-footnote,.b-studio-toolbar>label,.b-studio-view-heading>div>span,.b-studio-state,.b-studio-frame-meta,.b-studio-brief>span,.b-studio-activity>div,.b-studio-activity time,.b-studio-no-events,.b-plan-list small,.b-visual-verdict>span,.b-visual-reviews article>small){color:var(--rp-muted)}
+body.builder-product :is(.b-pool-status strong,.b-market>strong,.b-coin-panel dd,.b-brief-panel dd,.b-agent-identity strong,.b-agent-run label,.b-agent-run .b-run-option>span,.b-delivery-panel dd,.b-queue-panel dd,.b-version-row>strong,.b-release-check strong,.b-release-design dd,.b-studio-frame-meta>time,.b-studio-progress>span:nth-child(2),.b-studio-activity li p,.b-rail-activity p,.b-visual-reviews li>span){color:var(--rp-ink)}
+
+/* White cards and soft neutral supporting surfaces. */
+body.builder-product :is(.b-readiness-summary,.b-coin-panel,.b-agent-rail,.b-agent-composer,.b-agent-run,.b-art-assets,.b-delivery-panel,.b-queue-panel,.b-studio-view,.b-release-design,.b-version-brief,.b-plan-list>div,.b-project-file){background:var(--rp-panel);border-color:var(--rp-line);border-radius:10px}
+body.builder-product :is(.b-viewer,.b-pool-status,.b-owner-note,.b-coin-panel dl,.b-brief-panel dl,.b-work-tabs,.b-rail-activity,.b-release-checks,.b-release-check,.b-release-design dl>div,.b-creator-record,.b-version-list,.b-version-row,.b-event,.b-delivery-panel dl>div,.b-studio-frame-meta,.b-studio-brief,.b-studio-activity li,.b-visual-reviews,.b-visual-reviews article){border-color:var(--rp-line)}
+body.builder-product :is(.b-pool-status .b-history-recovery,.b-panel-empty,.b-studio-picker,.b-studio-next,.b-version-row.current,.b-concept-provider,.b-plan-text,.b-thumbnail-empty){background:var(--rp-panel-soft);border-color:var(--rp-line);color:var(--rp-ink)}
+body.builder-product :is(.b-studio-picker>span,.b-studio-empty>span,.b-panel-empty>span,.b-thumbnail-empty small,.b-concept-provider>span,.b-plan-list>div>span,.b-queue-panel dt,.b-release-check>span,.b-release-check small,.b-release-check>b,.b-release-design dt,.b-delivery-panel dt,.b-delivery-panel small,.b-delivery-panel .b-eyebrow,.b-visual-reviews p,.b-visual-reviews li){color:var(--rp-muted)}
+body.builder-product :is(.b-thumbnail-empty p,.b-concept-provider>strong,.b-version-row,.b-studio-activity>div>a){color:var(--rp-ink)}
+body.builder-product :is(.b-release-check.passed>span,.b-release-check.passed>b,.b-agent-state.active,.b-agent-feedback,.b-agent-composer .b-agent-price,.b-agent-run .b-run-feedback,.b-art-status,.b-visual-verdict strong,.b-visual-reviews details,.b-visual-source-links a,.b-run-version,.b-studio-state.working){color:var(--rp-green)}
+body.builder-product :is(.b-agent-state.active i,.b-studio-state.working>i,.b-pool-title i.online){background:var(--rp-green)}
+body.builder-product .b-owner-chip{color:var(--rp-green);background:#edf2e8;border-color:#d8e2d1}
+body.builder-product .b-release-blockers{background:#faf6e9;border-color:#e8dcc0;color:#725d2e}
+body.builder-product .b-release-blockers :is(h3,li){color:#725d2e}
+body.builder-product :is(.b-agent-feedback.is-error,.b-agent-run .b-run-error,.b-agent-run .b-run-feedback.is-error,.b-art-status.is-error){color:#a43f33}
+body.builder-product .b-event-marker{background:var(--rp-panel-soft);border-color:var(--rp-line);color:var(--rp-muted)}
+body.builder-product .b-event h3{color:var(--rp-ink)}
+body.builder-product :is(.b-event p,.b-event-type,.b-event time,.b-rail-activity time){color:var(--rp-muted)}
+body.builder-product .b-event-error{background:#fff3ef;border-color:#ead5cd}
+body.builder-product .b-event-error :is(h3,p,time,.b-event-type){color:#994d3d}
+body.builder-product .b-event-error .b-event-marker{background:#fbe4dc;border-color:#e7c1b6;color:#994d3d}
+body.builder-product .b-studio-empty{background:linear-gradient(#e0e3db55 1px,transparent 1px),linear-gradient(90deg,#e0e3db55 1px,transparent 1px),var(--rp-panel-soft);background-size:38px 38px}
+body.builder-product .b-delivery-panel .button{background:var(--rp-accent);border-color:var(--rp-accent);color:var(--rp-ink)}
+
+/* Editor controls are light; the actual Luau source canvas stays dark. */
+body.builder-product :is(.b-agent-composer textarea,.b-agent-composer select,.b-agent-run input[type=number],.b-studio-picker>select){background:var(--rp-panel);border-color:#d4d9ce;color:var(--rp-ink);font-family:var(--sans)}
+body.builder-product :is(.b-agent-composer textarea,.b-agent-composer select,.b-agent-run input[type=number],.b-studio-picker>select):focus{outline:2px solid #687847;outline-offset:2px}
+body.builder-product :is(.b-view-switch,.b-capture-views,.b-screen-top,.b-screen-footer,.b-build-progress){background:var(--rp-panel-soft);border-color:var(--rp-line);color:var(--rp-muted)}
+body.builder-product :is(.b-view-switch button,.b-view-switch button>span,.b-capture-views button,.b-capture-views button>span,.b-screen-footer>span,.b-build-progress>div,.b-build-progress small){color:var(--rp-muted);border-color:var(--rp-line)}
+body.builder-product :is(.b-view-switch button[aria-selected=true],.b-capture-views button[aria-pressed=true]){color:var(--rp-ink);background:#eaf0df;border-color:#d7dfcb;border-bottom-color:var(--rp-green)}
+body.builder-product .b-view-switch button[aria-selected=true]>span{color:var(--rp-green)}
+body.builder-product :is(.b-screen-on,.b-screen-footer>button){color:var(--rp-green)}
+body.builder-product .b-screen-footer .b-stop-screen{color:#9a503c}
+body.builder-product .b-build-progress strong{color:var(--rp-ink)}
+body.builder-product :is(.b-build-progress progress,.b-studio-progress progress){background:#e4e8df;color:var(--rp-green);accent-color:var(--rp-green)}
+body.builder-product :is(.b-build-progress progress,.b-studio-progress progress)::-webkit-progress-bar{background:#e4e8df}
+body.builder-product :is(.b-build-progress progress,.b-studio-progress progress)::-webkit-progress-value{background:var(--rp-green)}
+body.builder-product :is(.b-build-progress progress,.b-studio-progress progress)::-moz-progress-bar{background:var(--rp-green)}
+body.builder-product .b-work-tabs>button{color:var(--rp-muted);font-family:var(--sans)}
+body.builder-product .b-work-tabs>button.active{color:var(--rp-ink)}
+body.builder-product .b-work-tabs>button.active:after{background:var(--rp-green)}
+body.builder-product .b-work-tabs>button>span{background:var(--rp-panel-soft);border-color:var(--rp-line);color:var(--rp-muted)}
+body.builder-product .b-files{border-color:var(--rp-line);border-radius:8px}
+body.builder-product .b-files nav{background:var(--rp-panel-soft);border-color:var(--rp-line)}
+body.builder-product .b-files nav button{color:var(--rp-muted)}
+body.builder-product .b-files nav button.active{background:#e7ebdf;color:var(--rp-ink)}
+body.builder-product .b-code-view{background:#222720;color:#e9eee5}
+body.builder-product .b-code-view>div{color:#bcc8b6;border-color:#41493c}
+body.builder-product .b-code-view :is(pre,button,.b-source-download){color:#e0e9d9}
+body.builder-product .b-screen-content{background:#20271f;color:#edf0e9}
+body.builder-product :is(.b-screen-awaiting h2,.b-concept-empty h2){color:#edf0e9;font-family:var(--sans)}
+body.builder-product :is(.b-screen-awaiting p,.b-concept-empty p){color:#b0bba9;font-family:var(--sans)}
+body.builder-product :is(.b-screen-awaiting small,.b-concept-empty>small){color:#a0ac98}
+body.builder-product .b-screen-empty-grid{background:radial-gradient(ellipse at center,transparent,#20271fcc 75%),linear-gradient(#d8e4cf09 1px,transparent 1px),linear-gradient(90deg,#d8e4cf09 1px,transparent 1px);background-size:100% 100%,32px 32px,32px 32px}
+body.builder-product .b-concept-empty{background:radial-gradient(ellipse at 50% 30%,#3a45378c,transparent 65%),#20271f}
+body.builder-product .b-concept-caption .button{background:#f7f8f4e8;color:var(--rp-ink);border-color:#d5dccc}
+
+/* Release and creator earnings: document-like panels with quiet status color. */
+body.builder-product :is(.rc-step,.rc-money){background:var(--rp-panel);border-color:var(--rp-line)}
+body.builder-product :is(.rc-heading h1,.rc-step h2,.rc-money h2,.rc-money section>b){color:var(--rp-ink);font-family:var(--sans)}
+body.builder-product :is(.rc-breadcrumb,.rc-heading p,.rc-step p,.rc-step-label,.rc-checks li,.rc-step small,.rc-money section p,.rc-sources-date){color:var(--rp-muted)}
+body.builder-product :is(.rc-heading>span,.rc-money>span,.rc-step-label b,.rc-checks li.passed,.rc-link,.rc-money a){color:var(--rp-green)}
+body.builder-product .rc-money section{border-color:var(--rp-line)}
+body.builder-product .rc-runtime-note{background:#eef3e8;border-color:#dce5d4;color:var(--rp-green)}
+body.builder-product .rc-notice{background:#faf6e9;border-color:#e8dcc0;color:#725d2e}
+body.builder-product :is(.rc-actions,.rc-notice) .button{background:var(--rp-panel);border-color:#d3d9cc;color:var(--rp-ink);font-family:var(--sans)}
+body.builder-product :is(.rc-actions,.rc-notice) .button:hover{background:var(--rp-panel-soft);border-color:#b8c1ad}
+body.builder-product :is(.rc-actions,.rc-notice) .button.primary{background:var(--rp-accent);border-color:var(--rp-accent)}
+
+/* Launch, wallet and project dialogs. */
+body.builder-product dialog,body.builder-product #orbio-wallet-dialog{background:var(--rp-panel);border-color:var(--rp-line);border-radius:14px;color:var(--rp-ink);font-family:var(--sans);box-shadow:0 28px 90px #20231d26}
+body.builder-product dialog::backdrop{background:#20231d66;backdrop-filter:blur(4px)}
+body.builder-product dialog :is(h2,h3),body.builder-product #orbio-wallet-dialog h2{color:var(--rp-ink);font-family:var(--sans);font-weight:550}
+body.builder-product .dialog-head .eyebrow{color:var(--rp-muted)}
+body.builder-product :is(.build-modal,.rp-project-tools,.r-fees-panel,.r-solana-wallet,.r-solana-launch){color:var(--rp-ink);font-family:var(--sans)}
+body.builder-product :is(.build-modal p,.build-modal .build-modal-note,.rp-project-tools p,.r-fees-panel p,.r-solana-wallet>p,.r-solana-launch>p,.r-solana-wallet-row small,.r-solana-connected small,.r-solana-launch label>span,.r-solana-launch-terms small,.r-solana-launch-terms span,.r-solana-quote-total span,.r-solana-quote dt,.r-solana-saved-row small){color:var(--rp-muted);font-family:var(--sans)}
+body.builder-product :is(.build-modal label,.form-grid label,.rp-project-tools label,.r-solana-launch label){color:var(--rp-ink);font-family:var(--sans)}
+body.builder-product :is(.build-modal input,.build-modal textarea,.build-modal select,.form-grid input,.form-grid select,.form-grid textarea,.rp-project-tools input,.rp-project-tools textarea,.rp-project-tools select,.r-solana-launch input,.r-solana-launch select,.r-solana-launch textarea){background:var(--rp-panel);border-color:#d4d9ce;border-radius:6px;color:var(--rp-ink);font-family:var(--sans)}
+body.builder-product :is(.build-modal input,.build-modal textarea,.build-modal select,.rp-project-tools input,.rp-project-tools textarea,.rp-project-tools select,.r-solana-launch input,.r-solana-launch select,.r-solana-launch textarea):focus{outline:2px solid #687847;outline-offset:2px}
+body.builder-product :is(.build-modal input,.build-modal textarea,.r-solana-launch input,.r-solana-launch textarea)::placeholder{color:#7b8476}
+body.builder-product :is(.build-pairing,.dialog-note,.r-fees-shares,.r-fees-quote,.r-solana-launch-terms,.r-solana-quote-total,.r-solana-connected,.r-solana-saved-row,.wallet-address,.launch-allowance,.devnet-review-grid,.devnet-transaction-quote){background:var(--rp-panel-soft);border-color:var(--rp-line);color:var(--rp-ink)}
+body.builder-product .rp-project-tools textarea.rp-source-editor{background:#222720;color:#e2eadb;border-color:#414b39;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color-scheme:dark}
+body.builder-product :is(.build-modal [data-build-feedback],.rp-project-tools [role=status],.r-solana-feedback,.r-solana-launch [data-solana-feedback],.build-modal .b-flow-label,.build-modal-note a,.r-solana-wallet-row em,.r-solana-saved-row>b){color:var(--rp-green)}
+body.builder-product :is(.build-modal [data-build-feedback].is-error,.r-solana-feedback.is-error,.r-solana-launch [data-solana-feedback].is-error){color:#a43f33}
+body.builder-product .r-solana-note{color:var(--rp-muted)!important;font-family:var(--sans)!important}
+body.builder-product :is(.r-fees-panel dt,.r-solana-connected code,.rp-project-tools .r-solana-quote dt){color:var(--rp-muted)}
+body.builder-product :is(.r-solana-wallet-row b,.r-solana-connected strong,.r-solana-launch-terms strong,.r-solana-quote-total strong,.r-solana-quote dd,.r-solana-saved-row strong,.r-fees-panel dd,.rp-project-tools .r-solana-quote dd){color:var(--rp-ink)}
+body.builder-product :is(.r-solana-wallet-row,.wallet-option,.orbio-wallet-row){background:var(--rp-panel);border-color:var(--rp-line);color:var(--rp-ink)}
+body.builder-product :is(.r-solana-wallet-row,.wallet-option,.orbio-wallet-row):hover{background:var(--rp-panel-soft);border-color:#bcc6af}
+body.builder-product :is(.r-solana-wallet-row b,.r-solana-connected strong,.r-solana-saved-row strong){font-family:var(--sans)}
+body.builder-product :is(.r-solana-quote>div,.rp-project-tools .r-solana-quote>div){border-color:var(--rp-line)}
+body.builder-product :is(.r-solana-network,.devnet-chip){background:#eef3e8;border-color:#d6dfcb;color:var(--rp-green)}
+body.builder-product .r-fees-disclosure{border-color:var(--rp-green)}
+body.builder-product :is(.r-fees-ack input,.build-review-check input,.b-studio-toolbar input){accent-color:var(--rp-green)}
+body.builder-product :is(.s-model-options,.s-model-option,.s-info-steps,.s-info-steps>section){border-color:var(--rp-line)}
+body.builder-product :is(.s-model-option,.s-info-steps b){color:var(--rp-ink);font-family:var(--sans)}
+body.builder-product .s-model-option:hover{background:var(--rp-panel-soft)}
+body.builder-product .s-model-option>img{background:var(--rp-panel-soft)}
+body.builder-product :is(.s-model-option>span:last-child,.s-model-option small){color:var(--rp-muted)}
+body.builder-product :is(.orbio-wallet-head>span,.orbio-wallet-head>button,.orbio-wallet-group>span,#orbio-wallet-dialog>p,.orbio-wallet-row small,.orbio-wallet-status,.orbio-wallet-bottom,.orbio-connected-wallet div>span,.orbio-connected-wallet small,.orbio-connected-wallet>button){color:var(--rp-muted)}
+body.builder-product :is(.orbio-wallet-row b,.orbio-connected-wallet b){color:var(--rp-ink)}
+body.builder-product :is(.orbio-wallet-row-status,.orbio-wallet-bottom>button){color:var(--rp-green)}
+body.builder-product .orbio-wallet-logo{background:var(--rp-panel-soft)}
+body.builder-product .orbio-connected-wallet{background:var(--rp-panel-soft);border-color:var(--rp-line)}
+body.builder-product .orbio-wallet-bottom{border-color:var(--rp-line)}
+body.builder-product .orbio-wallet-status.is-error{color:#a43f33}
+body.builder-product :is(.wallet-permission-note,#wallet-status,.wallet-choice-indicator,.wallet-address>span,.launch-model-label>span,.devnet-review-grid dt,.devnet-review-grid small,.devnet-destination,.devnet-footnote,.devnet-empty,.launch-allowance>span,.launch-allowance small){color:var(--rp-muted)}
+body.builder-product :is(.launch-allowance b,.devnet-review-grid dd,.devnet-transaction-quote h3,.devnet-transaction-quote dd){color:var(--rp-ink)}
+body.builder-product :is(.devnet-review-grid>div,.devnet-transaction-quote dl>div){border-color:var(--rp-line)}
+body.builder-product .devnet-transaction-quote p{color:var(--rp-muted)!important}
+
+/* Build accounting and scene inventory use the same restrained cards. */
+body.builder-product :is(.b-compute-panel,.b-scene-summary,.b-token-address){background:var(--rp-panel);border-color:var(--rp-line);color:var(--rp-ink);border-radius:8px}
+body.builder-product :is(.b-compute-panel details[open]>summary,.b-compute-panel dl>div,.b-compute-fees,.b-compute-events,.b-compute-events li,.b-run-review,.b-run-budget,.b-run-history li,.b-scene-parts,.b-scene-parts>div){border-color:var(--rp-line)}
+body.builder-product :is(.b-compute-panel summary strong,.b-compute-panel dd,.b-compute-events strong,.b-compute-events b,.b-run-budget dd,.b-run-history li,.b-scene-summary strong,.b-scene-parts strong,.b-token-address code){color:var(--rp-ink)}
+body.builder-product :is(.b-compute-panel summary>span:last-child,.b-compute-panel .b-compute-note,.b-compute-panel dt,.b-compute-events span,.b-compute-events time,.b-run-disclosure,.b-run-boundary,.b-run-review,.b-run-budget dt,.b-run-history time,.b-scene-summary span,.b-scene-summary p,.b-scene-note,.b-scene-parts>div>span,.b-scene-parts small,.b-scene-parts code,.b-token-address>span,.b-detail-loading,.b-detail-error p){color:var(--rp-muted)}
+body.builder-product :is(.b-scene-summary p,.b-scene-note,.b-detail-error p){font-family:var(--sans)}
+body.builder-product .b-compute-unknown{color:#78603a;border-color:#beab88}
+body.builder-product .b-compute-fee-state{color:var(--rp-green);border-color:#d7e1ce;background:#eef3e8}
+body.builder-product .b-token-address button{color:var(--rp-green)}
+body.builder-product .rp-workspace-links{border-color:var(--rp-line);color:var(--rp-ink);font-family:var(--sans)}
+body.builder-product .rp-workspace-links a{color:var(--rp-green)}
+body.builder-product .rp-workspace-links a:hover{color:#243e19;text-decoration:underline;text-underline-offset:3px}
+body.builder-product .rp-workspace-links span{color:var(--rp-muted)}
+body.builder-product .b-agent-identity :is(strong,small){font-family:var(--sans)}

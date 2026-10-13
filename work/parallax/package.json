@@ -1,0 +1,27 @@
+{
+  "name": "ropad",
+  "version": "1.1.0",
+  "description": "Ropad prompt-driven Roblox games with creator revisions and release review",
+  "main": "server.cjs",
+  "scripts": {
+    "test": "node --test ../test-runtime.cjs ../test-devnet.cjs ../test-missions.cjs ../test-orbio.cjs ../test-orbio-launch.cjs ../test-orbio-integration.cjs ../test-orbio-ui.cjs ../test-roblox-builds.cjs ../test-builder-ai.cjs ../test-builder-visual-review.cjs ../test-builder-storage.cjs ../test-builder-http.cjs ../test-builder-pool-http.cjs ../test-builder-queue.cjs ../test-builder-export.cjs ../test-studio-worker.cjs ../test-solana-market.cjs ../test-builder-concepts.cjs ../test-orbio-trade.cjs ../test-ropad-workspace-ui.cjs ../test-ropad-solana-ui.cjs ../test-roblox-solana-launch.cjs ../test-solana-market-ui.cjs ../test-builder-agent.cjs ../test-builder-agent-http.cjs ../test-builder-agent-ui.cjs ../test-compute-ledger.cjs ../test-solana-fee-accounting.cjs ../test-compute-http.cjs ../test-compute-ledger-ui.cjs ../test-token-market-ui.cjs ../test-builder-ownership-ui.cjs ../test-token-page.cjs ../test-play-page.cjs ../test-game-page-routing.cjs ../test-live-playtest.cjs ../test-watch-studio-playtest.cjs ../test-openrouter-funding.cjs ../test-solana-fee-sharing.cjs ../test-solana-pumpswap.cjs ../test-builder-project.cjs ../test-runtime-config.cjs ../test-token-metadata.cjs ../test-pump-launch.cjs ../test-roblox-publishing.cjs ../test-fee-sharing-ui.cjs deploy/check-readiness.test.cjs ../test-project-tools-ui.cjs ../test-roblox-trends.cjs ../test-roblox-trending-ui.cjs ../test-discovery-ui.cjs ../test-release-center-ui.cjs ../test-launch-artwork-http.cjs ../test-launch-artwork.cjs ../test-launch-artwork-generator.cjs ../test-roblox-account.cjs ../test-roblox-account-http.cjs ../test-roblox-account-ui.cjs",
+    "workers:list": "node studio-worker.cjs --list",
+    "start": "node server.cjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@pump-fun/pump-sdk": "4.0.0",
+    "@pump-fun/pump-swap-sdk": "2.1.0",
+    "@solana/spl-token": "0.4.15",
+    "@solana/web3.js": "1.99.0",
+    "bn.js": "5.2.5",
+    "viem": "2.57.3"
+  },
+  "overrides": {
+    "jayson": "5.0.0"
+  },
+  "private": true
+}

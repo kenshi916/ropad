@@ -1,0 +1,111 @@
+/* Slate release workspace — visual surfaces only; game and trading states stay intact */
+body.builder-product:is([data-page="token"],[data-page="play"],[data-page="workspace"],[data-page="release"]){
+  --slate-bg:#202c3c;--slate-card:#29374a;--slate-raised:#33445a;--slate-inset:#223044;
+  --slate-edge:#42536b;--slate-soft-edge:#384a62;--slate-text:#f0f4f9;--slate-muted:#b1bfd1;--slate-dim:#99acc3;
+  --bg:var(--slate-bg);--dark:var(--slate-inset);--ink:var(--slate-text);--muted:var(--slate-muted);--line:var(--slate-edge);
+  --b-cream:var(--slate-bg);--b-ink:var(--slate-text);--b-muted:var(--slate-muted);--b-line:var(--slate-edge);--b-lime:#d7ff89;--green:#d7ff89;
+  background:radial-gradient(ellipse at 55% 0,#30425b 0,transparent 62%),var(--slate-bg);color:var(--slate-text);min-height:100vh;
+}
+body.builder-product:is([data-page="token"],[data-page="play"],[data-page="workspace"],[data-page="release"]) :is(.b-header,.s-header,.rp-discover-header){background:#202d3fef;border-color:var(--slate-edge);box-shadow:0 1px 0 #ffffff03;}
+body.builder-product:is([data-page="token"],[data-page="play"],[data-page="workspace"],[data-page="release"]) :is(.rp-header-purpose,.b-product-name,.b-footer,.s-footer){color:var(--slate-dim);}
+body.builder-product:is([data-page="token"],[data-page="play"],[data-page="workspace"],[data-page="release"]) .rp-discover-header nav.s-nav :is(a,button){color:var(--slate-muted);}
+body.builder-product:is([data-page="token"],[data-page="play"],[data-page="workspace"],[data-page="release"]) .rp-discover-header nav.s-nav a[aria-current="page"]{color:#f4f8ff;border-color:#d7ff89;}
+body.builder-product:is([data-page="token"],[data-page="play"],[data-page="workspace"],[data-page="release"]) :is(.button,.rp-button-secondary){background:var(--slate-raised);border-color:#50657f;color:#e7eef7;border-radius:8px;}
+body.builder-product:is([data-page="token"],[data-page="play"],[data-page="workspace"],[data-page="release"]) :is(.button,.rp-button-secondary):hover{background:#3c506a;border-color:#7188a2;color:#fff;}
+body.builder-product:is([data-page="token"],[data-page="play"],[data-page="workspace"],[data-page="release"]) :is(.button.primary,.rp-button-primary){background:#d7ff89;border-color:#d7ff89;color:#23311f;}
+body.builder-product:is([data-page="token"],[data-page="play"],[data-page="workspace"],[data-page="release"]) .rp-discover-header .b-wallet{background:#3b4c63;border-color:#4e627d;color:#f0f5fc;}
+body.builder-product:is([data-page="token"],[data-page="play"],[data-page="workspace"],[data-page="release"]) .rp-discover-header .b-wallet:hover{background:#4b607c!important;color:#fff!important;}
+body.builder-product:is([data-page="token"],[data-page="play"],[data-page="workspace"],[data-page="release"]) .rp-discover-header .rp-launch-button{background:#d7ff8909;border-color:#a9ca75;color:#d7ff89;}
+body.builder-product:is([data-page="token"],[data-page="play"],[data-page="workspace"],[data-page="release"]) :is(.b-footer,.s-footer){border-color:var(--slate-edge);}
+body.builder-product:is([data-page="token"],[data-page="play"],[data-page="workspace"],[data-page="release"]) :is(a,button,input,select,textarea):focus-visible{outline:2px solid #c5dfb0;outline-offset:4px;}
+
+/* Coin identity and panels */
+body[data-page="token"] .rp-token-page{--rp-bg:var(--slate-bg);--rp-card:var(--slate-card);--rp-edge:var(--slate-edge);--rp-text:var(--slate-text);--rp-muted:var(--slate-muted);--rp-accent:#d7ff89;}
+body[data-page="token"] :is(.rp-game-card,.rp-agent-card,.rp-activity-card,.rp-details-card,.rp-trade-loading,.rp-market-loading){background:var(--slate-card);border-color:var(--slate-edge);box-shadow:0 8px 26px #101b2924,inset 0 1px 0 #ffffff04;}
+body[data-page="token"] .rp-token-avatar{background:linear-gradient(145deg,#52647c,#33465b);border-color:#697e98;color:#d7ff89;}
+body[data-page="token"] .rp-token-banner{background:linear-gradient(100deg,#35475a,#2a3b50);border-color:#4d647c;}
+body[data-page="token"] .rp-token-banner p{color:#d1dce8;}
+body[data-page="token"] .rp-token-badges>span{background:#304057;border-color:#4d617b;color:#d1dcec;}
+body[data-page="token"] :is(.rp-token-breadcrumb,.rp-token-breadcrumb a,.rp-token-ticker,.rp-price-source,.rp-token-price>span:first-child,.rp-token-price p,.rp-section-label,.rp-token-credit,.rp-token-credit small,.rp-game-note,.rp-agent-note,.rp-agent-model div>span,.rp-activity-list time,.rp-activity-list article>div>span,.rp-activity-empty>span:last-child,.rp-token-details dt){color:var(--slate-muted);}
+body[data-page="token"] :is(.rp-token-breadcrumb>span:last-child,.rp-token-price p b,.rp-game-content>p,.rp-token-details dd,.rp-token-mint code,.rp-agent-state,.rp-activity-list p,.rp-activity-empty p){color:#d5deea;}
+body[data-page="token"] :is(.rp-agent-model>img,.rp-activity-marker,.rp-game-empty-icon){background:#374a60;border-color:#4d627b;color:#d7ff89;}
+body[data-page="token"] :is(.rp-activity-list article,.rp-token-mint){border-color:var(--slate-edge);}
+body[data-page="token"] .rp-game-visual{background:#243447;}
+body[data-page="token"] .rp-game-visual-empty{background:radial-gradient(ellipse at 30% 0,#425a71,transparent 80%),#2a3b50;}
+body[data-page="token"] .rp-game-visual-empty p{color:#b8c7d9;}
+body[data-page="token"] .rp-game-image-label{background:#26374beb;border-color:#637a94;color:#e1ebf7;}
+body[data-page="token"] .rp-game-open{background:#33485de8;border-color:#71879d;color:#fff;}
+
+/* Market plot gets its own lighter canvas, without inventing a chart or values */
+body[data-page="token"] .rp-token-page .r-token-market{background:var(--slate-card);border-color:var(--slate-edge);box-shadow:0 8px 26px #101b2924,inset 0 1px 0 #ffffff04;}
+body[data-page="token"] .rp-token-page :is(.r-market-heading,.r-market-headline>div>span,.r-market-facts,.r-market-observed){color:var(--slate-muted);}
+body[data-page="token"] .rp-token-page :is(.r-market-heading>span:first-child:after,.r-market-headline h2,.r-market-facts b){color:#ecf3fb;}
+body[data-page="token"] .rp-token-page .r-market-chain b{background:#364b53;border-color:#637878;color:#d4e6ce;}
+body[data-page="token"] .rp-token-page .r-market-metrics{background:#223044;border-color:#4c6079;}
+body[data-page="token"] .rp-token-page :is(.r-market-metrics button,.r-market-ranges button){color:#bac9dc;}
+body[data-page="token"] .rp-token-page :is(.r-market-metrics button[aria-pressed="true"],.r-market-ranges button[aria-pressed="true"]){background:#455a74;color:#f0f7ff;}
+body[data-page="token"] .rp-token-page .r-market-empty{background-color:#25364b;background-image:linear-gradient(#637b9825 1px,transparent 1px),linear-gradient(90deg,#637b9825 1px,transparent 1px);border-color:#49607a;}
+body[data-page="token"] .rp-token-page .r-market-empty:before{background:radial-gradient(ellipse at center,#293a50ed 10%,#293a5033 78%);}
+body[data-page="token"] .rp-token-page .r-market-empty-mark{background:#3a5069;border-color:#647f9b;color:#d7ff89;}
+body[data-page="token"] .rp-token-page .r-market-empty strong{color:#eef4fb;}
+body[data-page="token"] .rp-token-page .r-market-empty p{color:#b3c4d9;}
+body[data-page="token"] .r-market-plot{background:#25364b;border-radius:8px;}
+body[data-page="token"] .r-market-grid line{stroke:#50647e;}
+body[data-page="token"] .r-market-axis text{fill:#b4c6db;}
+body[data-page="token"] .r-market-point{stroke:#25364b;}
+body[data-page="token"] .r-market-source-note{color:#d8c89e;}
+
+/* Buy / sell panel: visible field borders and an unmistakable primary action */
+body[data-page="token"] .rp-token-page .r-trade-panel{background:#2e3e53;border-color:#536a84;box-shadow:0 10px 32px #101b2930,inset 0 1px 0 #ffffff07;}
+body[data-page="token"] .rp-token-page :is(.r-trade-panel>header,.r-sol-trade-heading>span,.r-trade-amount,.r-sol-receive,.r-trade-slippage,.r-sol-quote-note,.r-sol-unavailable p,.r-trade-network,.r-sol-trade-footer){color:#b7c7da;}
+body[data-page="token"] .rp-token-page :is(.r-sol-trade-heading h2,.r-sol-trade-heading strong,.r-sol-receive strong,.r-sol-unavailable strong){color:#eef5fc;}
+body[data-page="token"] .rp-token-page .r-trade-panel>header b{background:#42564c;border-color:#70846b;color:#e1f1c5;}
+body[data-page="token"] .rp-token-page .r-trade-tabs{background:#243448;border-color:#4b627e;}
+body[data-page="token"] .rp-token-page .r-trade-tabs button{color:#c2cddd;}
+body[data-page="token"] .rp-token-page .r-trade-tabs button[aria-selected="true"]{background:#54725e;color:#e8ffd5;}
+body[data-page="token"] .rp-token-page .r-trade-tabs button[data-sol-side="sell"][aria-selected="true"]{background:#704d61;color:#ffe5ef;}
+body[data-page="token"] .rp-token-page .r-sol-amount-box{background:#233348;border-color:#526b86;}
+body[data-page="token"] .rp-token-page .r-trade-amount input::placeholder{color:#9bacc1;}
+body[data-page="token"] .rp-token-page .r-sol-presets button{background:#394e68;border-color:#58718e;color:#e0e9f5;}
+body[data-page="token"] .rp-token-page .r-sol-presets button span{color:#b7c7da;}
+body[data-page="token"] .rp-token-page .r-trade-slippage select{background:#354b64;border-color:#617c99;color:#edf5fe;}
+body[data-page="token"] .rp-token-page .r-trade-submit{background:#d7ff89;border-color:#d7ff89;color:#23311f;}
+body[data-page="token"] .rp-token-page .r-trade-submit:disabled{background:#415668;border-color:#5b7085;color:#c0cfdb;}
+body[data-page="token"] .rp-token-page .r-trade-submit.sell:not(:disabled){background:#efb9c9;border-color:#efb9c9;color:#4b2639;}
+body[data-page="token"] .rp-token-page .r-sol-unavailable{border-color:#4c627c;}
+body[data-page="token"] .rp-token-page .r-trade-quote{background:#344b64;border-color:#637d98;}
+body[data-page="token"] .rp-token-page :is(.r-trade-quote>span,.r-trade-quote dl>div,.r-trade-quote small){color:#c2d3e5;}
+
+/* The playable game and creator release pages use the same slate surfaces */
+body[data-page="play"] .rp-play-page{--rp-play-line:var(--slate-edge);--rp-play-muted:var(--slate-muted);--rp-play-mint:#d7ff89;color:var(--slate-text);}
+body[data-page="play"] :is(.rp-play-art,.rp-play-art>img,.rp-play-launch){background:var(--slate-card);border-color:var(--slate-edge);}
+body[data-page="play"] .rp-play-art figcaption{background:#304259;border-color:#4b607b;color:#c3d1e1;}
+body[data-page="play"] .rp-play-placeholder{background:radial-gradient(ellipse at 50% 30%,#40597477,transparent 70%),#2a3b51;}
+body[data-page="play"] :is(.rp-play-placeholder p,.rp-play-nav>span,.rp-play-kicker,.rp-play-model>div>span,.rp-play-facts dt,.rp-play-access,.rp-play-creator small,.rp-play-release-note,.rp-play-about>p){color:var(--slate-muted);}
+body[data-page="play"] .rp-play-page .rp-play-button{background:#3a4f68;border-color:#647a94;color:#e2ebf5;}
+body[data-page="play"] .rp-play-page .rp-play-button.primary{background:#d7ff89;border-color:#d7ff89;color:#23311f;}
+body[data-page="play"] .rp-play-page .rp-play-button:disabled{background:#3c5062;border-color:#596f83;color:#bdccd9;}
+body[data-page="play"] .rp-play-model>img{background:#3a4c63;border-color:#586c85;}
+body[data-page="release"] :is(.rc-step,.rc-money){background:var(--slate-card);border-color:var(--slate-edge);box-shadow:0 8px 26px #101b2924;}
+body[data-page="release"] :is(.rp-release-page,.rc-heading p,.rc-step p,.rc-money section p,.rc-checks li,.rc-step small,.rc-step-label,.rc-sources-date,.rc-breadcrumb){color:var(--slate-muted);}
+body[data-page="release"] :is(.rc-heading h1,.rc-step h2,.rc-money h2,.rc-money section>b){color:var(--slate-text);}
+body[data-page="release"] .rc-runtime-note{background:#314854;border-color:#526f7a;color:#d0e2df;}
+body[data-page="release"] .rc-notice{background:#3b424d;border-color:#727363;color:#e3dec6;}
+body[data-page="release"] :is(.rc-checks li.passed,.rc-step-label b,.rc-link,.rc-money a){color:#d2eba9;}
+body[data-page="release"] .rc-money section{border-color:var(--slate-edge);}
+
+/* Studio workbench: preserve original captures, lighten the surrounding chrome */
+body[data-page="workspace"] :is(.b-viewer,.b-work-panel,.b-detail-rail,.b-queue-panel,.b-readiness-summary,.b-agent-panel,.b-run-budget,.b-run-review,.b-version-brief,.b-release-design,.b-scene-summary,.b-studio-view,.r-token-market,.r-trade-panel){background:var(--slate-card);border-color:var(--slate-edge);color:var(--slate-text);}
+body[data-page="workspace"] :is(.b-screen-top,.b-screen-footer,.b-view-switch,.b-work-tabs,.b-studio-toolbar,.rp-live-toolbar,.rp-live-action){background:#304158;border-color:var(--slate-edge);color:#c7d5e6;}
+body[data-page="workspace"] :is(.b-screen-content,.b-screen-awaiting,.b-studio-frame,.rp-live-playtest,.rp-live-stage){background:#243448;}
+body[data-page="workspace"] :is(.b-screen-window,.b-window-top,.b-run-history,.b-project-file,.b-activity-row,.b-run-version){background:#2f425a;border-color:var(--slate-edge);}
+body[data-page="workspace"] :is(.b-detail-description,.b-rail-muted,.b-readiness-summary p,.b-scene-note,.b-publication-note,.b-run-disclosure,.rp-live-empty p,.rp-live-empty small,.rp-live-disclosure){color:var(--slate-muted);}
+body[data-page="workspace"] :is(.b-work-tabs>button,.b-view-switch>button){color:#c0ccdc;}
+body[data-page="workspace"] :is(.b-work-tabs>button.active,.b-view-switch>button.active){color:#d7ff89;border-color:#b3d979;}
+body[data-page="workspace"] :is(pre,textarea,.b-source-code){background:#26364c;color:#dce7f5;border-color:#4f6580;}
+
+/* Matching dialogs keep the connected-wallet and release flows visually coherent */
+body.builder-product:is([data-page="token"],[data-page="play"],[data-page="workspace"],[data-page="release"]) dialog{background:#29394e;border-color:#526984;color:var(--slate-text);box-shadow:0 25px 80px #15223577;}
+body.builder-product:is([data-page="token"],[data-page="play"],[data-page="workspace"],[data-page="release"]) dialog::backdrop{background:#192535a6;}
+body.builder-product:is([data-page="token"],[data-page="play"],[data-page="workspace"],[data-page="release"]) dialog :is(input,textarea,select,.r-fees-shares,.r-fees-quote){background:#213248;color:#eef5fd;border-color:#526b86;}
+body.builder-product:is([data-page="token"],[data-page="play"],[data-page="workspace"],[data-page="release"]) dialog :is(p,small,.rp-project-tools label,.r-fees-panel dt){color:var(--slate-muted);}

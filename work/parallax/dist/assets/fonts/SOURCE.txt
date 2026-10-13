@@ -1,0 +1,4 @@
+Unmodified Geist and Geist Mono variable webfonts
+Source: https://github.com/vercel/geist-font
+Commit: 10dc7658f13c38a474cde201bb09a4617267545b
+License: SIL Open Font License 1.1 (OFL.txt and LICENSE.txt)

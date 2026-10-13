@@ -1,0 +1,36 @@
+/* Shared navigation for token, game and creator pages */
+.builder-product .b-header{height:76px;border-color:#ffffff12;background:#05080cf5;backdrop-filter:blur(18px)}
+.builder-product .b-header-inner{max-width:1328px;padding:0 32px;gap:34px}
+.builder-product .b-product-name{display:none}
+.builder-product .brand{font-size:22px;letter-spacing:-1.2px;gap:11px}
+.builder-product .brand .ropad-mark{width:28px;height:28px}
+.builder-product .b-header nav{gap:22px;margin-left:4px}
+.builder-product .b-header nav a,.builder-product .b-header nav button{font-size:12px;text-decoration:none;color:#a5abb5}
+.builder-product .b-header nav a:hover,.builder-product .b-header nav button:hover{color:#e8eddf}
+.builder-product .b-header nav a[aria-current=page]{color:#d7ff89}
+.builder-product .b-wallet{font-size:12px;padding:11px 16px;border-radius:9px;background:#e7eddc;border-color:#e7eddc;min-height:41px}
+.builder-product .b-wallet img{width:18px;height:18px}
+.builder-product .b-header-end{gap:20px}
+.builder-product .b-footer{max-width:1264px;margin:64px auto 0;padding:26px 0;border-top:1px solid #ffffff14;font-size:10px;gap:18px;color:#798594}
+.rp-page-loading{max-width:1264px;margin:70px auto;min-height:50vh;padding:30px;color:#98a5b4;font:14px/1.8 var(--mono)}
+.rp-page-loading>span{color:#c0ceae;font-size:11px;letter-spacing:.08em}
+.rp-page-loading h1{color:#e5eaf0;font:500 clamp(28px,4vw,44px)/1.25 var(--mono);letter-spacing:-1.6px;margin:22px 0}
+.rp-page-loading .button{margin:15px 12px 0 0;border-radius:8px!important;font-size:13px!important}
+.rp-workspace-links{display:flex;gap:24px;border-top:1px solid #ffffff14;padding:20px 0 0;margin-top:20px;font:12px var(--mono);color:#bac5d2}
+.rp-workspace-links a:hover{color:#d7ff89}.rp-workspace-links span{margin-left:auto;color:#768290}
+.b-detail-main .b-token-market-grid{display:none}
+.builder-product .s-main:not(.b-studio-main){max-width:1328px;padding:0 32px}
+.s-main:not(.b-studio-main) .s-intro{padding:52px 0 32px;border-color:#ffffff18}
+.s-main:not(.b-studio-main) .s-intro h1{font-size:clamp(25px,3.3vw,42px);line-height:1.25;letter-spacing:-1.7px;margin:12px 0 16px}
+.s-main:not(.b-studio-main) .s-tagline{font-size:13px;line-height:1.8;max-width:650px}
+.s-main:not(.b-studio-main) .s-intro .button{font-size:12px;border-radius:8px;padding:13px 17px}
+.s-main:not(.b-studio-main) .s-stream-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+.s-main:not(.b-studio-main) .s-stream-card{border-radius:14px;overflow:hidden;border-color:#ffffff1a;background:#090f17}
+.s-main:not(.b-studio-main) .s-token-row .s-token-name{font-size:16px;line-height:1.45}
+.s-main:not(.b-studio-main) .s-card-meta{font-size:10px;line-height:1.8}
+.s-main:not(.b-studio-main) .s-current-task{font-size:11px;line-height:1.8}
+.s-main:not(.b-studio-main) .s-card-footer{font-size:10px;padding:16px 0}
+.s-main:not(.b-studio-main) .s-card-footer a{font-size:11px}
+@media(max-width:1100px){.builder-product .b-header-inner{gap:22px}.builder-product .b-header nav{gap:14px}.builder-product .b-header nav [data-builder-action=workspaces]{display:none}.builder-product .b-footer{margin-left:32px;margin-right:32px}.s-main:not(.b-studio-main) .s-stream-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:749px){.builder-product .b-header{height:auto;min-height:76px}.builder-product .b-header-inner{padding:16px 20px 12px;gap:18px 12px}.builder-product .b-header nav{order:2;gap:22px;overflow:auto;flex-wrap:nowrap;width:100%;padding:1px 0 3px}.builder-product .b-header nav a,.builder-product .b-header nav button{font-size:11px}.builder-product .b-header nav [data-builder-action=models]{display:none}.builder-product .b-wallet{font-size:11px;padding:9px 12px}.builder-product .b-header-end{gap:16px}.builder-product .s-main:not(.b-studio-main){padding:0 20px}.s-main:not(.b-studio-main) .s-intro{padding-top:30px}.s-main:not(.b-studio-main) .s-stream-grid{grid-template-columns:1fr}.builder-product .b-footer{margin:40px 20px 0;padding:22px 0;flex-wrap:wrap;font-size:10px}.builder-product .b-footer>span:first-child{display:block;width:100%}.rp-workspace-links{flex-wrap:wrap;gap:16px}.rp-workspace-links span{width:100%;margin:0;font-size:10px}.rp-page-loading{margin-top:30px;padding:20px}}
+@media(prefers-reduced-motion:reduce){.builder-product *{scroll-behavior:auto!important}}

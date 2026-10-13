@@ -1,0 +1,147 @@
+ROPAD / TOKEN PAGES, VISUAL BUILDS AND RELEASE READINESS
+Audit date: October 10, 2026 Pacific / October 11 UTC
+
+READINESS
+Local development release. Not ready for a public, real-money launch.
+The four implementation/review passes are processed separately from activation,
+production integration and full gameplay acceptance. Existing games and their
+historical evidence are preserved. No real-fund transaction is an audit test.
+
+WHAT IS IMPLEMENTED
+- Prompt-only game planning with Opus 5.5 or GPT-6 Astra, within provider catalog
+  availability and spending limits. No fallback to a cheaper planning model.
+- Creator-controlled revisions and source/project downloads. Token holding alone
+  does not grant edit access. Prompt revisions generate a new scene and do not
+  merge manual Studio code changes.
+- Separate concept art and thumbnail generation, with real Studio frames labeled
+  as captures. Images are not evidence that the game was built or playtested.
+- Saved concept pixels guide planning. Bounded scene lighting and noncollidable
+  decorative blocks, spheres and cylinders with yaw rotation improve the tools
+  available to the planner. Gameplay geometry remains axis-aligned and validated.
+- Three actual worker views (overview, spawn, finish) carry job IDs, timestamps
+  and hashes. Opus/Astra can review these images, save a public visual critique
+  and request at most one separate improvement version under the same approved
+  run/project budgets. That version receives its own assembly, smoke check and
+  visual review. Existing scenes and creator edits are preserved.
+- Bounded Start/Pause workflow, project/daily/run reservations, durable costs,
+  unknown-charge holds, and a creator-review stop. Opening a page starts no work.
+- Solana Devnet game-mint flow and wallet ownership, with signing and recovery.
+  Devnet coins have no real market cap, trading pool or fee revenue.
+- Locally constructed and simulated mainnet trades for verified supported Pump
+  SOL bonding curves. Exact wallet-message and finalized-receipt verification.
+  No public mainnet creation/linking flow or PumpSwap integration is enabled.
+- Coin overview/chart plus right-hand buy/sell panel. Prices and market cap are
+  in SOL from verified observations gathered during the browser session. No
+  fabricated history, USD conversion, holders, volume or token value.
+- Separate token, game and creator workspace routes. Game pages show saved
+  artwork/captures and only open Roblox when a valid creator-supplied release
+  URL exists. These links do not establish publication, ownership or access.
+  Actual gameplay runs in Roblox Player; no embedded gameplay is simulated.
+- Per-project compute accounting and inactive read-only fee-receipt verification.
+  Recorded SOL distributions are not provider credit or a platform-token buyback.
+
+ACTUAL STUDIO EVIDENCE
+Neon Harbor Tycoon and Crystal Canyon Obby retain actual Studio captures and
+recorded assembly/runtime smoke checks. They were planned with Gemini earlier;
+their historical labels remain accurate. Neither has full gameplay review or
+verified publication. These compact scenes are not evidence of a finished
+commercial-quality Roblox game.
+
+Skyline Circuit retains its paid Opus 5.5 plan and a generated project artifact;
+actual Studio completion remains unverified. Its plan was not regenerated for
+this update. No live provider-to-Studio visual review/rebuild cycle has been
+verified. No compatible visual worker is currently connected. The passing local
+pipeline tests use provider fixtures and do not establish live Studio success.
+
+FINAL AUDIT HARDENING
+The final review addresses scene recycling, creator UI after wallet changes,
+expired compute displays and durable launch intent storage. Regression evidence
+and the full packaged test result are recorded in the companion handoff report.
+Updated workers retire after one build. Existing geometry, scripts and creator
+edits are never recycled or removed for a later build. Start a fresh worker on
+a fresh empty unpublished place for each next build.
+All pool claims require oneBuildPerStudio:true plus the supported dedicated
+worker capabilities, so an old running worker cannot claim manual or agent jobs.
+Visual runs and enhanced plans also require fresh visualReviewProtocol:1 workers.
+The unversioned manual bridge cannot render enhanced plans. Legacy screenshots
+remain viewable without being inferred to belong to current visual-review jobs.
+Visual revision retries use a durable exact-input identity and return the same
+child after interruption. Changed inputs or frame hashes fail closed. Scene
+captures become immutable when their authenticated worker lease closes.
+
+LOCALHOST ACTIVE / STUDIO VALIDATION REMAINS
+Localhost was stopped at the start of this update. The existing launcher started
+it without stopping or restarting another process. Live visualReviewVersion:1
+and visualSceneVersion:1 were verified in outputs/ropad-token-pages-live.json.
+The saved games and credentials were preserved. This was a stopped-server start;
+the earlier rejected restart was not retried or bypassed.
+
+The live records still have no saved Roblox publication URLs. Skyline Circuit
+is waiting_for_studio; Neon Harbor Tycoon and Crystal Canyon Obby retain their
+ready assembly status. These states do not establish full gameplay acceptance.
+Backend activation alone does not connect a fresh Studio worker or complete a
+live provider-to-Studio visual review/rebuild cycle.
+
+For a later user-run update, outputs/Restart-Ropad.ps1 remains the idle-work
+restart helper. It preserves private state and verifies visual markers, capture
+views and the maximum of one visual revision alongside existing capability checks.
+Preserve old Studio places and safely stop their idle old worker before starting
+the updated worker against fresh empty places. See README-WORKERS.txt. Do not
+point the new worker at an existing completed or manually edited place.
+
+For a separate clean package installation, use npm ci --ignore-scripts and
+start.ps1. It does not contain the existing local credentials or saved history.
+Do not replace the original private directory with a blank package directory.
+
+REMAINING LAUNCH WORK
+1. Connect fresh visualReviewProtocol:1 Studio workers to the active backend.
+   Complete Skyline from its saved plan, then verify one actual visual cycle.
+   An improvement version needs another fresh empty unpublished Studio place;
+   the completed original is preserved and its worker retires.
+2. Run complete gameplay/physics, performance and content review in Studio, then
+   have the creator publish. Smoke tests are initialization checks only.
+3. Implement mainnet launch plus durable public metadata/artwork hosting, then
+   verify launch/trade recovery in the intended deployment. They are unfinished,
+   not features enabled by simply entering a wallet address.
+4. Supply the actual Solana platform mint, two treasury addresses and intended
+   fee split. Establish the actual on-chain sharing setup separately; configure
+   and exercise the read-only finalized-receipt verifier with a real receipt.
+5. Implement authenticated provider funding and reconciliation. OpenRouter must
+   have funded credit; sponsored limits and SOL receipt totals do not fund it.
+6. Review dependencies and production isolation, authentication, persistence,
+   hosting and worker supervision. This server is bound to loopback, not a hosted
+   multi-tenant 24/7 service. No public deployment was performed.
+
+DEPENDENCY REVIEW
+The October 9 audit reports eight high-severity package entries inherited from
+bigint-buffer and toml. bigint-buffer 1.1.5 has no patched version listed by its
+advisory. This installation uses the pure JavaScript fallback with installation
+scripts disabled; that mitigation does not make the dependency audit clean.
+Anchor's toml 3.0.0 is used for local Anchor.toml workspace parsing, not an HTTP
+TOML input endpoint in Ropad. A reviewed compatible upgrade or replacement is
+still needed. Do not apply npm audit fix --force: suggested downgrades change
+the Pump/SPL APIs used for financial transaction construction.
+https://github.com/advisories/GHSA-3gc7-fjrx-p6mg
+https://github.com/advisories/GHSA-82x6-q7mm-w9cf
+https://github.com/advisories/GHSA-v5mp-jgw5-2x6j
+
+VERIFICATION SCOPE
+The current full source suite reports 507 passed, 0 failed and 0 skipped. Tests
+mock provider and chain responses and exercise authorization, signature/quote
+checks, revision idempotency and crash recovery, frame hashes, image validation,
+shared compute budgets, failed storage, accounting and worker plans. An HTTP
+pipeline fixture verifies two plans and two visual reviews with actual image
+payloads. Executable Luau fixtures verify reviewed generated logic, decorative
+collision rules and safe template-spawn handling. These results do not certify
+production security or prove live provider, chain or Studio gameplay success.
+Token/play page tests also cover route changes, stale responses, ownership
+invalidation, trade panel refresh, safe release links and image provenance.
+Optional executable Luau fixtures need an official Luau CLI; set
+PARALLAX_LUAU_PATH and ROPAD_LUAU_BIN to its absolute executable path before npm
+test, enabling both worker and gameplay fixtures. The runtime
+archive contains no node_modules, private state, encrypted credential files or
+detected plaintext provider keys. Install dependencies from the pinned lockfile.
+
+Earlier four-pass companion evidence (before this visual update): outputs/Ropad-Pass4-Status.txt,
+outputs/ropad-pass4-verification.log, outputs/ropad-pass4-package-check.json,
+outputs/ropad-pass4-live-capabilities.json and the pass-4 audit notes/screenshots.

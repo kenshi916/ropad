@@ -1,0 +1,23 @@
+# The context is work/parallax, not the workspace or private saved-game folder.
+# Allowlist shipped source/assets; credentials, journals and local captures
+# are never copied into a build stage or sent to the Docker build context.
+**
+!package.json
+!package-lock.json
+!camera-catalog.json
+!/*.cjs
+!/*.luau
+!dist/
+!dist/**
+!deploy/
+!deploy/Dockerfile
+!deploy/Dockerfile.dockerignore
+!deploy/healthcheck.cjs
+!deploy/check-readiness.cjs
+**/.env
+**/.env.*
+**/*.key
+**/*credentials*
+**/private/**
+**/node_modules/**
+**/runtime-playtest/**

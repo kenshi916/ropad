@@ -1,0 +1,26 @@
+Wallet identifiers used to label the user's chosen desktop provider
+Retrieved 2026-10-06
+
+metamask.svg
+Official MetaMask brand asset pack linked by https://metamask.io/assets
+https://assets.ctfassets.net/clixtyxoaeas/1d7h0Cnm1RaQ0TspxaTS0H/57418d60d3a13fbee748be1ca560235a/MetaMask-Logo-Pack__4_.zip
+Entry: MetaMask-Logo-Pack/MetaMask/MetaMask-icon-fox.svg
+
+rabby.svg
+Official Rabby brand assets
+https://github.com/RabbyHub/logo/blob/master/avatar.svg
+
+rainbow.svg
+Official Rainbow-maintained RainbowKit wallet identifier
+https://github.com/rainbow-me/rainbowkit/blob/main/packages/rainbowkit/src/wallets/walletConnectors/rainbowWallet/rainbowWallet.svg
+
+coinbase.svg
+Official Coinbase Wallet SDK standard wallet logo
+https://github.com/coinbase/coinbase-wallet-sdk/blob/master/packages/wallet-sdk/src/assets/wallet-logo.ts
+Decoded the standard SVG data URL, with width and height fixed to its 1024 viewBox
+
+phantom.svg
+Reused the project's existing Phantom official-logo asset at ../model-logos/phantom-wallet.svg
+
+Wallet names and marks belong to their respective owners
+These icons identify wallet connection choices and do not claim affiliation or endorsement

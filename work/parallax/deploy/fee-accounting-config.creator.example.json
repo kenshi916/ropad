@@ -1,0 +1,7 @@
+{
+  "platformMint": "",
+  "platformTreasury": "",
+  "computeTreasury": "",
+  "splitBps": { "creator": 0, "platform": 0, "compute": 0 },
+  "projects": []
+}

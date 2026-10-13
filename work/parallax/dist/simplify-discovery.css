@@ -1,0 +1,100 @@
+/* One discovery surface and one primary action, using the shared Ramp palette. */
+body.builder-product .rp-simple-header {min-height:76px}
+body.builder-product .rp-simple-header .b-header-inner {max-width:1264px;min-height:76px;padding:0 32px;gap:36px;flex-wrap:nowrap}
+body.builder-product .rp-simple-header .brand {min-width:0;font-size:23px;letter-spacing:-.8px}
+body.builder-product .rp-simple-header nav.s-nav {order:0;width:auto;min-height:76px;height:auto;gap:26px;overflow:visible;margin:0}
+body.builder-product .rp-simple-header nav.s-nav a {padding:0;font-size:13px;border:0;position:relative;text-decoration:none}
+body.builder-product .rp-simple-header nav.s-nav a[aria-current=page] {color:var(--rp-ink);font-weight:600}
+body.builder-product .rp-simple-header nav.s-nav a[aria-current=page]:after {content:"";position:absolute;height:2px;background:var(--rp-ink);bottom:18px;left:0;right:0}
+body.builder-product .rp-simple-header .b-header-end {gap:10px}
+body.builder-product .rp-simple-header .button {min-height:38px;font-size:12px;padding:10px 15px;border-radius:6px}
+body.builder-product .rp-simple-header .b-wallet {background:#fff;border-color:var(--rp-line);color:var(--rp-ink)}
+body.builder-product .rp-simple-header .b-wallet:hover {background:var(--rp-panel-soft)!important;color:var(--rp-ink)!important}
+body.builder-product .rp-simple-header .b-wallet img {width:17px;height:17px}
+body.builder-product .s-main.rp-simple-discovery {max-width:1264px;padding:0 32px 48px}
+body.builder-product .rp-simple-discovery .rp-discover-intro {padding:54px 0 32px;gap:24px}
+body.builder-product .rp-simple-discovery .rp-discover-intro h1 {font-size:34px;line-height:1.18;letter-spacing:-1.2px;margin:0 0 10px;font-weight:600}
+body.builder-product .rp-simple-discovery .rp-discover-intro p {font-size:14px;line-height:1.6;max-width:620px}
+body.builder-product .rp-simple-discovery .rp-text-link {font-size:12px;color:var(--rp-muted);white-space:nowrap}
+body.builder-product .rp-simple-discovery .rp-text-link:hover {color:var(--rp-ink)}
+.rp-discovery-controls {display:flex;align-items:center;gap:10px;position:relative}
+body.builder-product .rp-simple-discovery .rp-header-search {height:42px;max-width:420px;flex:1;margin:0;order:0;border:1px solid var(--rp-line);border-radius:6px;background:#fff}
+body.builder-product .rp-simple-discovery .rp-header-search input {font-size:13px;min-width:0}
+body.builder-product .rp-simple-discovery .s-sort {margin-left:auto}
+body.builder-product .rp-simple-discovery .s-sort select {height:42px;min-height:42px;border-radius:6px;font-size:12px;padding:9px 28px 9px 13px;background:#fff}
+.rp-discovery-filters {position:relative;font-size:12px;color:var(--rp-ink)}
+.rp-discovery-filters>summary {padding:12px 15px;min-height:42px;cursor:pointer;border:1px solid var(--rp-line);border-radius:6px;background:#fff;list-style:none;display:flex;gap:14px;align-items:center}
+.rp-discovery-filters>summary::-webkit-details-marker {display:none}
+.rp-discovery-filters>summary:after {content:"+";font-size:15px;line-height:1;color:var(--rp-muted)}
+.rp-discovery-filters[open]>summary:after {content:"−"}
+.rp-discovery-filters[open]>summary {background:var(--rp-panel-soft)}
+.rp-discovery-filters>summary:focus-visible {outline:2px solid #617c32;outline-offset:3px}
+.rp-filter-popover {position:absolute;z-index:5;right:0;top:calc(100% + 8px);width:345px;max-width:calc(100vw - 40px);padding:20px;background:#fff;border:1px solid var(--rp-line);border-radius:8px;box-shadow:0 10px 32px #20231d12;display:flex;flex-direction:column;gap:12px}
+.rp-filter-popover>span {font-size:11px;color:var(--rp-muted)}
+.rp-filter-popover>span:not(:first-child) {margin-top:6px}
+body.builder-product .rp-simple-discovery .s-list-tabs {gap:6px}
+body.builder-product .rp-simple-discovery .s-list-tabs button {border-radius:5px;font-size:11px;padding:8px 10px}
+body.builder-product .rp-simple-discovery .s-provider-filters {width:auto;display:flex;gap:5px}
+body.builder-product .rp-simple-discovery .s-provider-filters button {font-size:11px;padding:8px}
+.rp-directory-summary {display:flex;justify-content:space-between;margin:22px 0 14px;color:var(--rp-muted);font-size:12px}
+body.builder-product .s-main.rp-simple-discovery:not(.b-studio-main) .s-stream-grid {grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+body.builder-product .s-main.rp-simple-discovery:not(.b-studio-main) .s-stream-card {display:flex;flex-direction:column;gap:0;padding:0;border:1px solid var(--rp-line);border-radius:9px;background:#fff;box-shadow:none;min-width:0;transition:border-color .15s ease}
+body.builder-product .s-main.rp-simple-discovery:not(.b-studio-main) .s-stream-card:hover {background:#fff;border-color:#adb7a3}
+body.builder-product .rp-simple-discovery .s-screen-link {display:block;min-width:0}
+body.builder-product .rp-simple-discovery .s-stream-card .s-screen-surface {aspect-ratio:16/9;height:auto;border:0;border-bottom:1px solid var(--rp-line);border-radius:0;background:var(--rp-panel-soft)}
+body.builder-product .rp-simple-discovery .s-stream-card .s-screen-surface>img {object-fit:cover}
+body.builder-product .rp-simple-discovery .s-stream-card .s-screen-badges {left:12px;right:12px;bottom:12px}
+body.builder-product .rp-simple-discovery .s-stream-card .s-screen-status {font:500 9px/1.4 var(--sans);letter-spacing:.035em;white-space:normal;text-align:left;padding:5px 7px;background:#20231ddb;color:#fff;border-radius:4px}
+body.builder-product .rp-simple-discovery .s-awaiting-frame {background:var(--rp-panel-soft);color:var(--rp-muted);padding:20px}
+body.builder-product .rp-simple-discovery .s-awaiting-frame>span {font-size:28px;color:#a8b09e}
+body.builder-product .rp-simple-discovery .s-awaiting-frame strong {color:var(--rp-muted);font:500 12px/1.5 var(--sans)}
+body.builder-product .rp-simple-discovery .s-stream-card .s-card-content {padding:18px}
+body.builder-product .rp-simple-discovery .s-token-row {display:flex;flex-wrap:nowrap;gap:12px;align-items:start}
+body.builder-product .rp-simple-discovery .s-token-row>div:not(.s-mcap) {min-width:0;width:auto;flex:1}
+body.builder-product .s-main.rp-simple-discovery:not(.b-studio-main) .s-token-name {font:600 16px/1.35 var(--sans);letter-spacing:-.25px}
+body.builder-product .rp-simple-discovery .s-token-symbol {font:11px/1.5 var(--sans);margin:4px 0 0}
+body.builder-product .rp-simple-discovery .s-mcap {display:flex;flex-direction:column;align-items:end;gap:4px;padding:0;min-width:35px}
+body.builder-product .rp-simple-discovery .s-mcap>span {font-size:9px;letter-spacing:.04em}
+body.builder-product .rp-simple-discovery .s-mcap>strong {font:500 13px/1.3 var(--sans);font-variant-numeric:tabular-nums;color:var(--rp-ink)}
+body.builder-product .s-main.rp-simple-discovery:not(.b-studio-main) .s-card-meta {font:12px/1.4 var(--sans);margin:7px 0 0;display:block}
+body.builder-product .rp-simple-discovery .s-card-meta>span:first-child {display:inline;color:var(--rp-muted)}
+body.builder-product .s-main.rp-simple-discovery:not(.b-studio-main) .s-card-footer {padding:14px 0 0;margin-top:16px;gap:10px;font:11px/1.4 var(--sans);border-top:1px solid #edf0e7}
+body.builder-product .rp-simple-discovery .s-card-footer>span {font-size:11px;color:var(--rp-muted)}
+body.builder-product .rp-simple-discovery .s-card-footer img {width:14px;height:14px}
+body.builder-product .s-main.rp-simple-discovery:not(.b-studio-main) .s-card-footer a {font:500 11px/1.4 var(--sans);color:var(--rp-muted)}
+body.builder-product .rp-simple-discovery .rp-service-details {margin-top:40px;font-size:11px}
+body.builder-product .rp-simple-footer {max-width:1200px;display:flex;justify-content:space-between;align-items:center;gap:24px;margin:0 auto;padding:24px 0 32px;font:11px/1.6 var(--sans)}
+body.builder-product .rp-simple-footer>span {display:block}
+.rp-simple-footer nav {display:flex;gap:24px;flex-wrap:wrap}
+.rp-simple-footer nav :is(button,a) {font:inherit;color:var(--rp-muted);background:none;border:0;padding:0;cursor:pointer}
+.rp-simple-footer nav :is(button,a):hover {color:var(--rp-ink)}
+@media (max-width:1000px) {
+  body.builder-product .s-main.rp-simple-discovery:not(.b-studio-main) .s-stream-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+  body.builder-product .rp-simple-header .b-header-inner {gap:25px}
+  body.builder-product .rp-simple-header nav.s-nav {gap:20px}
+  body.builder-product .rp-simple-footer {margin:0 32px}
+}
+@media (max-width:749px) {
+  body.builder-product .rp-simple-header {min-height:105px}
+  body.builder-product .rp-simple-header .b-header-inner {min-height:105px;padding:15px 20px 0;gap:13px 16px;flex-wrap:wrap}
+  body.builder-product .rp-simple-header .brand {font-size:21px}
+  body.builder-product .rp-simple-header .b-header-end {gap:7px}
+  body.builder-product .rp-simple-header .button {min-height:34px;padding:8px 10px;font-size:10px}
+  body.builder-product .rp-simple-header .b-wallet img {width:14px;height:14px}
+  body.builder-product .rp-simple-header nav.s-nav {width:100%;order:3;min-height:38px;gap:26px}
+  body.builder-product .rp-simple-header nav.s-nav a {padding-bottom:14px;font-size:12px}
+  body.builder-product .rp-simple-header nav.s-nav a[aria-current=page]:after {bottom:0}
+  body.builder-product .s-main.rp-simple-discovery {padding:0 20px 32px}
+  body.builder-product .rp-simple-discovery .rp-discover-intro {padding:32px 0 24px;align-items:start;flex-direction:column;gap:12px}
+  body.builder-product .rp-simple-discovery .rp-discover-intro h1 {font-size:29px}
+  body.builder-product .rp-simple-discovery .rp-discover-intro p {font-size:13px;max-width:340px}
+  body.builder-product .rp-simple-discovery .rp-discover-intro>.rp-text-link {display:inline}
+  .rp-discovery-controls {flex-wrap:wrap;gap:8px}
+  body.builder-product .rp-simple-discovery .rp-header-search {flex-basis:100%;max-width:none;width:100%;order:0}
+  body.builder-product .rp-simple-discovery .s-sort {margin-left:0;flex:1}
+  body.builder-product .rp-simple-discovery .s-sort select {width:100%;font-size:12px!important}
+  .rp-directory-summary {margin-top:18px}
+  body.builder-product .s-main.rp-simple-discovery:not(.b-studio-main) .s-stream-grid {grid-template-columns:1fr;gap:20px}
+  body.builder-product .rp-simple-footer {margin:0 20px;padding-top:20px;align-items:start;flex-direction:column;gap:15px}
+}
+@media (prefers-reduced-motion:reduce) {body.builder-product .s-main.rp-simple-discovery:not(.b-studio-main) .s-stream-card {transition:none}}
