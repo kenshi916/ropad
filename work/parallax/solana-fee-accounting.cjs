@@ -31,8 +31,8 @@ function normalizeConfig(config) {
   if(config==null)return null;
   if(typeof config!=='object'||Array.isArray(config)||Object.keys(config).some(k=>!['platformMint','platformTreasury','computeTreasury','splitBps','projects'].includes(k)))throw fail('Invalid operator fee configuration',500,'INVALID_FEE_CONFIG');
   try {
-    for(const field of ['platformMint','platformTreasury','computeTreasury'])publicKey(config[field],field);
-    if(config.platformTreasury===config.computeTreasury)throw Error();
+    for(const field of ['platformTreasury','computeTreasury'])publicKey(config[field],field);
+    const platformMint=config.platformMint==null||config.platformMint===''?null:publicKey(config.platformMint,'platformMint').toBase58();
     const split=config.splitBps;
     const shareKeys=Object.keys(split||{}).sort().join(',');
     if(!split||typeof split!=='object'||!['compute,platform','compute,creator,platform'].includes(shareKeys)||Object.values(split).some(bps=>!Number.isInteger(bps)||bps<=0)||Object.values(split).reduce((sum,bps)=>sum+bps,0)!==10000)throw Error();
@@ -40,18 +40,43 @@ function normalizeConfig(config) {
     if(!Array.isArray(projects)||projects.length>500)throw Error();
     const ids=new Set();
     for(const project of projects){if(!project||Object.keys(project).sort().join(',')!=='projectId,sourceMint'||!uuid(project.projectId)||ids.has(project.projectId))throw Error();publicKey(project.sourceMint,'fee source mint');ids.add(project.projectId);}
-    return structuredClone({...config,projects});
-  }catch{throw fail('Operator fee configuration requires explicit mints, distinct treasuries, positive shares totaling 10000 bps, and unique project mappings',500,'INVALID_FEE_CONFIG');}
+    return structuredClone({...config,platformMint,projects});
+  }catch{throw fail('Operator fee configuration requires explicit treasury addresses, positive shares totaling 10000 bps, valid optional platform mint, and unique project mappings',500,'INVALID_FEE_CONFIG');}
 }
 // Creator destinations come only from the saved verified coin owner resolver.
 // Existing two-way plans retain their original recipients and proportions.
 function feeRecipients(config,creator=null){
   const recipients=[{address:config.platformTreasury,shareBps:config.splitBps.platform,role:'platform'},{address:config.computeTreasury,shareBps:config.splitBps.compute,role:'compute'}];
   if(config.splitBps.creator){
-    let wallet;try{wallet=publicKey(creator,'verified project creator');if(!PublicKey.isOnCurve(wallet.toBytes())||recipients.some(r=>r.address===creator))throw Error();}catch{throw fail('A distinct verified project creator wallet is required for the creator fee share',409,'FEE_CREATOR_UNVERIFIED');}
+    let wallet;try{wallet=publicKey(creator,'verified project creator');if(!PublicKey.isOnCurve(wallet.toBytes()))throw Error();}catch{throw fail('A verified project creator wallet is required for the creator fee share',409,'FEE_CREATOR_UNVERIFIED');}
     recipients.push({address:wallet.toBase58(),shareBps:config.splitBps.creator,role:'creator'});
   }
-  return recipients;
+  const unique=new Map();
+  for(const recipient of recipients){
+    const existing=unique.get(recipient.address);
+    if(!existing){unique.set(recipient.address,{...recipient});continue;}
+    const allocationsBps=existing.allocationsBps||{[existing.role]:existing.shareBps};
+    allocationsBps[recipient.role]=recipient.shareBps;
+    unique.set(recipient.address,{address:recipient.address,shareBps:existing.shareBps+recipient.shareBps,role:'combined',allocationsBps});
+  }
+  return [...unique.values()];
+}
+const ROLE_ORDER=['platform','compute','creator'];
+// A shared wallet receives one on-chain transfer. Its role amounts are internal
+// accounting allocations, never separate reserves or additional payments.
+function allocateTransfers(recipients,received){
+  const totals={platform:0n,compute:0n,creator:0n};
+  for(const recipient of recipients){
+    const value=received.get(recipient.address);
+    if(typeof value!=='bigint'||value<0n)throw fail('Missing recipient transfer');
+    const shares=recipient.allocationsBps||{[recipient.role]:recipient.shareBps},denominator=BigInt(recipient.shareBps);
+    const parts=ROLE_ORDER.filter(role=>shares[role]).map(role=>({role,value:value*BigInt(shares[role])/denominator,remainder:value*BigInt(shares[role])%denominator}));
+    let dust=value-parts.reduce((sum,p)=>sum+p.value,0n);
+    for(const part of [...parts].sort((a,b)=>a.remainder===b.remainder?ROLE_ORDER.indexOf(a.role)-ROLE_ORDER.indexOf(b.role):a.remainder>b.remainder?-1:1)){if(dust===0n)break;part.value++;dust--;}
+    if(dust!==0n)throw fail('Recipient allocation could not be reconciled');
+    for(const part of parts)totals[part.role]+=part.value;
+  }
+  return {totals,allocationMethod:recipients.some(r=>r.role==='combined')?'proportional_internal_largest_remainder_v1':'direct_onchain_transfers'};
 }
 function readInstructions(message,meta) {
   if(!message||![undefined,'legacy',0].includes(message.version)||typeof message.getAccountKeys!=='function')throw fail('Only legacy and v0 Solana messages are supported');
@@ -107,12 +132,13 @@ async function verifyDistribution({transaction,signature,instructionIndex,mint,c
     if(!configuredShares.has(recipient)||received.has(recipient)||lamports<=0n)throw fail('The receipt contains an unexpected, repeated, or empty recipient payment');
     received.set(recipient,lamports);
   }
-  const total=BigInt(event.distributed.toString()),platform=received.get(config.platformTreasury),compute=received.get(config.computeTreasury),creatorAmount=config.splitBps.creator?received.get(creator):0n;
-  if(total<=0n||platform+compute+creatorAmount!==total)throw fail('Transferred lamports do not sum to the Pump event distribution');
+  const total=BigInt(event.distributed.toString());
+  if(total<=0n||[...received.values()].reduce((sum,value)=>sum+value,0n)!==total)throw fail('Transferred lamports do not sum to the Pump event distribution');
   // Splitting integer lamports can leave at most N-1 lamports of dust for a
   // recipient. Exact CPI amounts and their total remain the credited evidence.
   for(const [recipient,bps] of configuredShares){const floor=total*BigInt(bps)/10000n,actual=received.get(recipient);if(actual<floor||actual>floor+BigInt(recipientCount-1))throw fail('Transferred lamports do not match the configured proportional split');}
-  return {signature,instructionIndex,cluster:'mainnet-beta',slot:transaction.slot,finalized:true,mint,source:'pump_creator_fee_distribution',instruction:name,sharingConfig:sharingConfig.toBase58(),creatorVault:vault.toBase58(),platformTreasury:config.platformTreasury,computeTreasury:config.computeTreasury,creatorWallet:config.splitBps.creator?creator:null,splitBps:structuredClone(config.splitBps),receivedLamports:total.toString(),platformLamports:platform.toString(),computeLamports:compute.toString(),creatorLamports:creatorAmount.toString(),messageHash:hash(Buffer.from(message.serialize())),explorerUrl:'https://solscan.io/tx/'+signature};
+  const {totals,allocationMethod}=allocateTransfers(recipients,received),onChainTransfers=recipients.map(r=>({address:r.address,shareBps:r.shareBps,lamports:received.get(r.address).toString()}));
+  return {signature,instructionIndex,cluster:'mainnet-beta',slot:transaction.slot,finalized:true,mint,source:'pump_creator_fee_distribution',instruction:name,sharingConfig:sharingConfig.toBase58(),creatorVault:vault.toBase58(),platformTreasury:config.platformTreasury,computeTreasury:config.computeTreasury,creatorWallet:config.splitBps.creator?creator:null,splitBps:structuredClone(config.splitBps),receivedLamports:total.toString(),platformLamports:totals.platform.toString(),computeLamports:totals.compute.toString(),creatorLamports:totals.creator.toString(),allocationMethod,onChainTransfers,messageHash:hash(Buffer.from(message.serialize())),explorerUrl:'https://solscan.io/tx/'+signature};
 }
 function storageError(){return fail('Fee receipt history is unreadable or changed; reconciliation is paused and existing files are preserved',503,'FEE_STORAGE_UNAVAILABLE');}
 function decodeState(bytes) {
@@ -123,6 +149,19 @@ function decodeState(bytes) {
     if(!receipt||typeof receipt.owner!=='string'||!receipt.owner||receipt.owner.length>200||!uuid(receipt.projectId)||receipt.cluster!=='mainnet-beta'||receipt.finalized!==true||!Number.isInteger(receipt.instructionIndex)||receipt.instructionIndex<0||receipt.instructionIndex>63||!Number.isSafeInteger(receipt.slot)||!Number.isFinite(receipt.verifiedAt)||!amount(receipt.receivedLamports)||!amount(receipt.platformLamports)||!amount(receipt.computeLamports)||!amount(receipt.creatorLamports??'0')||BigInt(receipt.receivedLamports)!==BigInt(receipt.platformLamports)+BigInt(receipt.computeLamports)+BigInt(receipt.creatorLamports??'0')||!/^[a-f0-9]{64}$/.test(receipt.messageHash)||!/^[a-f0-9]{64}$/.test(receipt.configHash))throw storageError();
     signatureBytes(receipt.signature);publicKey(receipt.mint);publicKey(receipt.platformTreasury);publicKey(receipt.computeTreasury);
     if(receipt.splitBps?.creator||BigInt(receipt.creatorLamports??'0')>0n)feeRecipients(receipt,receipt.creatorWallet);
+    if(receipt.allocationMethod!==undefined||receipt.onChainTransfers!==undefined){
+      const config=normalizeConfig({platformTreasury:receipt.platformTreasury,computeTreasury:receipt.computeTreasury,splitBps:receipt.splitBps}),recipients=feeRecipients(config,receipt.creatorWallet),expected=new Map(recipients.map(r=>[r.address,r.shareBps])),received=new Map();
+      if(!Array.isArray(receipt.onChainTransfers)||receipt.onChainTransfers.length!==recipients.length)throw storageError();
+      for(const transfer of receipt.onChainTransfers){
+        if(!transfer||Object.keys(transfer).sort().join(',')!=='address,lamports,shareBps'||expected.get(transfer.address)!==transfer.shareBps||received.has(transfer.address)||!amount(transfer.lamports)||BigInt(transfer.lamports)<=0n)throw storageError();
+        received.set(transfer.address,BigInt(transfer.lamports));
+      }
+      const total=BigInt(receipt.receivedLamports);
+      if([...received.values()].reduce((sum,value)=>sum+value,0n)!==total)throw storageError();
+      for(const [address,bps] of expected){const floor=total*BigInt(bps)/10000n,value=received.get(address);if(value<floor||value>floor+BigInt(recipients.length-1))throw storageError();}
+      const {totals,allocationMethod}=allocateTransfers(recipients,received);
+      if(receipt.allocationMethod!==allocationMethod||ROLE_ORDER.some(role=>totals[role].toString()!==(receipt[role+'Lamports']??'0')))throw storageError();
+    }else if(receipt.platformTreasury===receipt.computeTreasury||receipt.splitBps?.creator&&[receipt.platformTreasury,receipt.computeTreasury].includes(receipt.creatorWallet))throw storageError();
     const id=receipt.signature+':'+receipt.instructionIndex;if(ids.has(id))throw storageError();ids.add(id);
   }
   return state;
@@ -136,13 +175,14 @@ function createSolanaFeeAccountingService({stateDirectory,config=null,connection
   function assertStorage(){if(storageFault)throw storageError();try{if((fs.existsSync(file)?hash(fs.readFileSync(file)):null)!==diskHash)throw Error();}catch{storageFault=true;throw storageError();}}
   function save(){assertStorage();const temporary=file+'.'+crypto.randomUUID()+'.tmp';let fd;try{const bytes=JSON.stringify(state);decodeState(Buffer.from(bytes));fd=fs.openSync(temporary,'wx',0o600);fs.writeFileSync(fd,bytes);fs.fsyncSync(fd);fs.closeSync(fd);fd=undefined;fs.renameSync(temporary,file);diskHash=hash(bytes);}catch{storageFault=true;throw storageError();}finally{if(fd!==undefined)fs.closeSync(fd);if(fs.existsSync(temporary))fs.unlinkSync(temporary);}}
   const publicReceipt=receipt=>{const {owner,configHash,...rest}=receipt;return structuredClone(rest);};
-  function configuration(){return {status:operator?'configured':'inactive',cluster:'mainnet-beta',asset:'SOL',platformMint:operator?.platformMint??null,platformTreasury:operator?.platformTreasury??null,computeTreasury:operator?.computeTreasury??null,splitBps:operator?.splitBps?structuredClone(operator.splitBps):null,creatorShareBps:operator?.splitBps.creator??0,creatorRecipientSource:'verified_project_owner',readOnly:true,onChainConfigurationVerified:false,providerCreditsUsd:0,reason:operator?'Receipt verification configured; this service does not configure or claim on-chain fees':'Operator fee mints, treasuries, shares, and project sources have not been configured'};}
+  function configuration(){return {status:operator?'configured':'inactive',cluster:'mainnet-beta',asset:'SOL',platformMint:operator?.platformMint??null,platformTreasury:operator?.platformTreasury??null,computeTreasury:operator?.computeTreasury??null,sharedTreasury:!!operator&&operator.platformTreasury===operator.computeTreasury,splitBps:operator?.splitBps?structuredClone(operator.splitBps):null,creatorShareBps:operator?.splitBps.creator??0,creatorRecipientSource:'verified_project_owner',readOnly:true,onChainConfigurationVerified:false,providerCreditsUsd:0,allocationMeaning:'Roles sharing a wallet are internal accounting allocations of one on-chain transfer, not separate reserves or provider credit',reason:operator?'Receipt verification configured; this service does not configure or claim on-chain fees':'Operator treasury addresses, shares, and project sources have not been configured'};}
   function summary({projectId,owner}={}) {
     if(!uuid(projectId))throw fail('Choose a saved project',400,'INVALID_FEE_INPUT');assertStorage();
     const rows=state.receipts.filter(r=>r.projectId===projectId),sum=field=>rows.reduce((n,r)=>n+BigInt(r[field]??'0'),0n).toString();
     const receivedLamports=sum('receivedLamports'),platformLamports=sum('platformLamports'),computeLamports=sum('computeLamports'),creatorLamports=sum('creatorLamports');
     const mapped=operator?.projects.some(p=>p.projectId===projectId);
-    return {status:operator?'configured':'inactive',asset:'SOL',receivedLamports,receivedSol:sol(receivedLamports),platformLamports,platformSol:sol(platformLamports),computeLamports,computeSol:sol(computeLamports),creatorLamports,creatorSol:sol(creatorLamports),providerCreditsUsd:0,receiptCount:rows.length,receipts:owner?rows.filter(r=>r.owner===owner).map(publicReceipt):[],reason:!operator?configuration().reason:!mapped?'No operator-approved fee source is mapped to this project':'Verified lifetime distributions; these are not current wallet balances or spendable provider credits'};
+    const includesInternalAllocations=rows.some(r=>r.allocationMethod==='proportional_internal_largest_remainder_v1');
+    return {status:operator?'configured':'inactive',asset:'SOL',receivedLamports,receivedSol:sol(receivedLamports),platformLamports,platformSol:sol(platformLamports),computeLamports,computeSol:sol(computeLamports),creatorLamports,creatorSol:sol(creatorLamports),includesInternalAllocations,allocationMeaning:includesInternalAllocations?'Role totals include internal allocations of shared-wallet transfers; no separate AI reserve or provider credit is established':'Role totals follow verified on-chain recipient transfers',providerCreditsUsd:0,receiptCount:rows.length,receipts:owner?rows.filter(r=>r.owner===owner).map(publicReceipt):[],reason:!operator?configuration().reason:!mapped?'No operator-approved fee source is mapped to this project':'Verified lifetime distributions; these are not current wallet balances or spendable provider credits'};
   }
   async function reconcile({owner,projectId,mint,signature,instructionIndex}={}) {
     assertStorage();if(!operator)throw fail(configuration().reason,409,'FEE_CONFIG_INACTIVE');

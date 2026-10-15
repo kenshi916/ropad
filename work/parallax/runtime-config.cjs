@@ -17,8 +17,13 @@ function readRuntimeConfig({stateDirectory,env=process.env}={}){
   const bind=env.ROPAD_BIND_HOST||stored.bindHost||'127.0.0.1';if(!['127.0.0.1','0.0.0.0'].includes(bind))throw fail('ROPAD_BIND_HOST must be 127.0.0.1 or 0.0.0.0');if(bind==='0.0.0.0'&&!origin)throw fail('Public binding requires ROPAD_PUBLIC_ORIGIN and a TLS reverse proxy');
   const wallets=(env.ROPAD_OPERATOR_WALLETS||stored.operatorWallets||'').toString().split(',').map(v=>v.trim()).filter(Boolean);
   try{const {PublicKey}=require('@solana/web3.js');for(const value of wallets){const address=new PublicKey(value);if(address.toBase58()!==value||!PublicKey.isOnCurve(address.toBytes()))throw Error();}}catch{throw fail('Configure valid Solana signing addresses for operator wallets');}
+  const pumpLookupTableAddress=env.ROPAD_PUMP_LOOKUP_TABLE_ADDRESS??stored.pumpLookupTableAddress??'';
+  try{if(typeof pumpLookupTableAddress!=='string')throw Error();if(pumpLookupTableAddress){const {PublicKey}=require('@solana/web3.js'),address=new PublicKey(pumpLookupTableAddress);if(address.toBase58()!==pumpLookupTableAddress)throw Error();}}catch{throw fail('Configure a valid Solana Pump lookup table address');}
   const bounded=(key,storedKey,fallback,min,max,integer=false)=>{const value=Number(env[key]??stored[storedKey]??fallback);if(!Number.isFinite(value)||value<min||value>max||(integer&&!Number.isInteger(value)))throw fail(key+' is outside its supported allowance');return value;};
   const buildOutputTokens=bounded('ROPAD_BUILD_OUTPUT_TOKENS','buildOutputTokens',6000,1000,32000,true),buildPlanMaxEstimateUsd=bounded('ROPAD_BUILD_PLAN_CAP_USD','buildPlanMaxEstimateUsd',.75,.01,25),maxAgentBudgetUsd=bounded('ROPAD_AGENT_MAX_BUDGET_USD','maxAgentBudgetUsd',1,.01,25);
-  return {buildOutputTokens,buildPlanMaxEstimateUsd,maxAgentBudgetUsd,publicOrigin:origin,mainnetEnabled:enabled,defaultCluster:enabled?'mainnet-beta':'devnet',solanaRpcUrl:rpc,bindHost:bind,operatorWallets:[...new Set(wallets)],providerAccountId:env.ROPAD_PROVIDER_ACCOUNT_ID||stored.providerAccountId||''};
+  const dailyBudgetValue=env.ROPAD_DAILY_COMPUTE_BUDGET_USD??stored.dailyComputeBudgetUsd??1;
+  if(!['number','string'].includes(typeof dailyBudgetValue)||typeof dailyBudgetValue==='string'&&!dailyBudgetValue.trim())throw fail('ROPAD_DAILY_COMPUTE_BUDGET_USD is outside its supported allowance');
+  const dailyComputeBudgetUsd=bounded('ROPAD_DAILY_COMPUTE_BUDGET_USD','dailyComputeBudgetUsd',1,0,1000);
+  return {buildOutputTokens,buildPlanMaxEstimateUsd,maxAgentBudgetUsd,dailyComputeBudgetUsd,pumpLookupTableAddress,publicOrigin:origin,mainnetEnabled:enabled,defaultCluster:enabled?'mainnet-beta':'devnet',solanaRpcUrl:rpc,bindHost:bind,operatorWallets:[...new Set(wallets)],providerAccountId:env.ROPAD_PROVIDER_ACCOUNT_ID||stored.providerAccountId||''};
 }
 module.exports={publicOrigin,readRuntimeConfig};

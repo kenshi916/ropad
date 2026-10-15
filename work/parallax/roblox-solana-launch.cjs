@@ -7,6 +7,26 @@ const {assertBuilderModelId,DEFAULT_BUILDER_MODEL_ID}=require('./builder-models.
 const fail=(message,status=400)=>Object.assign(new Error(message),{status});
 const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 const UUID=/^[a-f0-9-]{36}$/;
+const FEE_FIELDS=['feeSharingRequired','feeSharingAtomic','feePolicyHash','feeShares','sharingConfig','permanentShares','feeSharingVerified'];
+function feeSnapshot(result){return Object.fromEntries(FEE_FIELDS.filter(k=>k!=='feeSharingVerified'&&result?.[k]!==undefined).map(k=>[k,result[k]]));}
+function validateFeeSnapshot(result,previous,owner){
+  if(previous?.feeSharingRequired===true&&result.feeSharingRequired!==true)throw fail('Required creator-fee routing cannot be removed from a saved launch',503);
+  if(result.feeSharingRequired!==true)return;
+  try{
+    if(result.feeSharingAtomic!==true||result.permanentShares!==true||!/^[a-f0-9]{64}$/.test(result.feePolicyHash||'')||!Array.isArray(result.feeShares)||!result.feeShares.length||result.feeShares.length>10)throw Error();
+    address(result.sharingConfig);if(result.sharingConfig!==require('@pump-fun/pump-sdk').feeSharingConfigPda(new PublicKey(result.mint)).toBase58())throw Error();const seen=new Set(),roles=new Set();let sum=0;
+    for(const row of result.feeShares){
+      address(row.address);if(seen.has(row.address)||!Number.isSafeInteger(row.shareBps)||row.shareBps<=0||row.shareBps>10000)throw Error();
+      const allocations=row.role==='combined'?row.allocationsBps:{[row.role]:row.shareBps};
+      if(!allocations||typeof allocations!=='object'||Array.isArray(allocations)||!Object.keys(allocations).length||row.role==='combined'&&Object.keys(allocations).length<2)throw Error();
+      let allocated=0;for(const [role,bps] of Object.entries(allocations)){if(!['compute','creator','platform'].includes(role)||roles.has(role)||!Number.isSafeInteger(bps)||bps<=0||role==='creator'&&row.address!==owner)throw Error();roles.add(role);allocated+=bps;}
+      if(allocated!==row.shareBps)throw Error();seen.add(row.address);sum+=row.shareBps;
+    }
+    if(sum!==10000||!roles.has('compute')||!roles.has('platform'))throw Error();
+    if(previous?.feeSharingRequired&&JSON.stringify(feeSnapshot(previous))!==JSON.stringify(feeSnapshot(result)))throw Error();
+  }catch{throw fail('The permanent creator-fee policy is missing, invalid or changed',503);}
+  if(result.status==='confirmed'&&result.feeSharingVerified!==true)throw fail('Finalized creator-fee routing verification is required before creating the game workspace',503);
+}
 function address(value,signer=false){try{if(typeof value!=='string')throw Error();const key=new PublicKey(value);if(key.toBase58()!==value||signer&&!PublicKey.isOnCurve(key.toBytes()))throw Error();return value;}catch{throw fail('A valid Solana address is required');}}
 function field(value,name,max,min=1){if(typeof value!=='string'||value.trim().length<min||Buffer.byteLength(value)>max||/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(value))throw fail(`${name} must contain ${min} or more characters within ${max} bytes`);return value.trim();}
 function missionData(input){
@@ -27,7 +47,7 @@ function decodeState(bytes,cluster='devnet'){
     if(!UUID.test(record.launchId)||ids.has(record.launchId)||record.missionId!=='roblox_'+record.launchId||!['draft','prepared','pending','confirmed','failed','expired'].includes(record.status)||!Number.isFinite(record.createdAt)||!Number.isFinite(record.updatedAt))throw Error('Invalid saved game launch');
     ids.add(record.launchId);address(record.owner,true);const mission=missionData(record.mission);
     const fingerprint=crypto.createHash('sha256').update(JSON.stringify({owner:record.owner,mission})).digest('hex');if(record.fingerprint!==fingerprint)throw Error('Saved mission fingerprint does not match');
-    if(record.result){if(record.result.intentId!==record.intentId||record.result.cluster!==cluster)throw Error('Invalid saved token intent');address(record.result.mint);}
+    if(record.result){if(record.result.intentId!==record.intentId||record.result.cluster!==cluster)throw Error('Invalid saved token intent');address(record.result.mint);validateFeeSnapshot(record.result,undefined,record.owner);}
     if(record.status==='confirmed'&&(!record.result||record.result.status!=='confirmed'||!/^[1-9A-HJ-NP-Za-km-z]{64,88}$/.test(record.result.signature||'')))throw Error('Invalid saved confirmation');
     if(record.buildId&&!UUID.test(record.buildId))throw Error('Invalid saved game link');
   }
@@ -67,8 +87,8 @@ function createClusterLaunchService({stateDirectory,devnet,getBuilds,getArtwork,
     if(!record)throw fail('Saved game launch was not found',404);if(record.owner!==owner)throw fail('This game launch belongs to another Solana wallet',403);return record;
   }
   function output(record){
-    const result={...config(),...record.result,launchId:record.launchId,mission:structuredClone(record.mission),owner:record.owner,status:record.status,createdAt:record.createdAt,updatedAt:record.updatedAt,intentId:record.intentId||null,buildId:record.buildId||null};
-    if(record.buildId){try{result.buildSession=getBuilds().get(record.buildId,{owner:record.owner});}catch{result.buildError='Your test token is confirmed; retry its status to recover the game workspace without launching again';}}
+    const result={...config(),...(record.result?{feeSharingRequired:false,feeSharingAtomic:false,feePolicyHash:null,feeShares:null,sharingConfig:null,permanentShares:false,feeSharingVerified:false}:{}),...record.result,launchId:record.launchId,mission:structuredClone(record.mission),owner:record.owner,status:record.status,createdAt:record.createdAt,updatedAt:record.updatedAt,intentId:record.intentId||null,buildId:record.buildId||null};
+    if(record.buildId){try{result.buildSession=getBuilds().get(record.buildId,{owner:record.owner});}catch{result.buildError='Your token is confirmed; retry its status to recover the game workspace without launching again';}}
     if(record.buildError)result.buildError=record.buildError;if(record.lastError)result.lastError=record.lastError;return result;
   }
   async function artworkFor(owner,mission){
@@ -84,15 +104,16 @@ function createClusterLaunchService({stateDirectory,devnet,getBuilds,getArtwork,
     if(record.result?.mint&&record.result.mint!==result.mint)throw fail('Solana launch mint changed unexpectedly',503);
     if(result.status==='confirmed'&&(typeof result.signature!=='string'||!/^[1-9A-HJ-NP-Za-km-z]{64,88}$/.test(result.signature)))throw fail('A confirmed Solana transaction signature is required',503);
     if(cluster==='mainnet-beta'&&result.status==='confirmed'&&(!result.verified||!result.finalized||!result.metadataVerified||!result.bondingCurveCreated))throw fail('Finalized Pump mint and metadata verification is required',503);
+    validateFeeSnapshot(result,record.result,record.owner);
     const allowed=['cluster','status','intentId','mint','tokenAccount','transactionBase64','blockhash','lastValidBlockHeight','expiresAt','rentLamports','estimatedNetworkFeeLamports','totalRequiredLamports','signature','confirmedAt','explorerUrl','mintExplorerUrl','transactionVersion','fundingLamports','estimatedAccountCostLamports','realFunds','costIsEstimate','initialBuyLamports','simulation','metadataUri','metadata','curve','pumpUrl','verified','finalized','metadataVerified','bondingCurveCreated','slot','verificationSlot','actualNetworkFeeLamports','submissionUncertain','lastError'];
-    const safe=Object.fromEntries(allowed.filter(key=>result[key]!==undefined).map(key=>[key,result[key]]));
+    const safe=Object.fromEntries([...allowed,...FEE_FIELDS].filter(key=>result[key]!==undefined).map(key=>[key,structuredClone(result[key])]));
     record.result=safe;record.intentId=result.intentId;record.status=result.status;record.updatedAt=now();delete record.lastError;save();
     if(record.status==='confirmed'){
       try{
         const m=record.mission,artwork=await artworkFor(record.owner,m),builds=getBuilds(),build=builds.create({owner:record.owner,gameName:m.name,brief:m.brief,template:'auto',inspiration:m.inspiration,modelId:m.modelId,inferenceProvider,idempotencyKey:'solana-'+cluster+':'+record.launchId,token:{chain:'solana',cluster,address:result.mint,symbol:m.ticker,signature:result.signature,verified:true,marketCapUsd:null}});
         if(artwork){if(typeof builds.attachLaunchArtwork!=='function')throw fail('Game artwork attachment is unavailable',503);builds.attachLaunchArtwork({id:build.id,owner:record.owner,artwork});}
         record.buildId=build.id;delete record.buildError;save();
-      }catch{record.buildError='Your test token is confirmed; retry this launch status to recover the workspace without paying again';save();}
+      }catch{record.buildError='Your token is confirmed; retry this launch status to recover the workspace without paying again';save();}
     }
     return output(record);
   }

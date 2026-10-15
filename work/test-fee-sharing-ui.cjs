@@ -12,7 +12,10 @@ function fixture(options={}){
   const walletKey=Keypair.generate(),owner=walletKey.publicKey.toBase58(),other=Keypair.generate().publicKey.toBase58(),platform=Keypair.generate().publicKey.toBase58(),compute=Keypair.generate().publicKey.toBase58(),platformMint=Keypair.generate().publicKey.toBase58(),mint=Keypair.generate().publicKey.toBase58(),buildId=crypto.randomUUID(),projectId=crypto.randomUUID(),intentId=crypto.randomUUID();
   const tx=new VersionedTransaction(new TransactionMessage({payerKey:walletKey.publicKey,recentBlockhash:Keypair.generate().publicKey.toBase58(),instructions:[SystemProgram.transfer({fromPubkey:walletKey.publicKey,toPubkey:Keypair.generate().publicKey,lamports:1})]}).compileToV0Message());
   const config={status:'configured',cluster:'mainnet-beta',platformMint,platformTreasury:platform,computeTreasury:compute,splitBps:options.creatorShare?{creator:5000,platform:3000,compute:2000}:{platform:6000,compute:4000},permanentShares:true,...options.configChanges};
-  const shares=[{address:platform,shareBps:config.splitBps.platform},{address:compute,shareBps:config.splitBps.compute},...(options.creatorShare?[{address:owner,shareBps:config.splitBps.creator}]:[])],base={intentId,owner,projectId,mint,status:'prepared',cluster:'mainnet-beta',transactionVersion:'v0',transactionBase64:Buffer.from(tx.serialize()).toString('base64'),expiresAt:Date.now()+60000,estimatedNetworkFeeLamports:'5000',simulation:'passed',shares,creatorWallet:options.creatorShare?owner:null,platformMint,permanentShares:true,rentMayApply:true,realFunds:true};
+  if(options.sharedTreasury)config.computeTreasury=config.platformTreasury;
+  if(options.creatorIsTreasury){config.platformTreasury=owner;config.computeTreasury=owner;}
+  const grouped=new Map();for(const [address,bps] of [[config.platformTreasury,config.splitBps.platform],[config.computeTreasury,config.splitBps.compute],...(config.splitBps.creator?[[owner,config.splitBps.creator]]:[])])grouped.set(address,(grouped.get(address)||0)+bps);
+  const shares=[...grouped].map(([address,shareBps])=>({address,shareBps})),base={intentId,owner,projectId,mint,status:'prepared',cluster:'mainnet-beta',transactionVersion:'v0',transactionBase64:Buffer.from(tx.serialize()).toString('base64'),expiresAt:Date.now()+60000,estimatedNetworkFeeLamports:'5000',simulation:'passed',shares,creatorWallet:config.splitBps.creator?owner:null,platformMint:config.platformMint,permanentShares:true,rentMayApply:true,realFunds:true};
   const dialog=new Node(),body=new Node(),events={},storage=new Map(),requests=[],calls=[];let current=owner,latestQuote=null;const root=()=>body.querySelector('[data-ropad-fees-root]');
   if(options.pending)storage.set('ropad.fee-sharing.pending.v1',JSON.stringify({[buildId+':'+owner]:{intentId,owner,projectId,mint,cluster:'mainnet-beta'}}));
   const wallet={get address(){return current;},provider:{signTransaction:async transaction=>{calls.push('sign');if(options.changeDuringSign){current=other;events['ropad-solana-wallet-change']?.();}if(options.tamperSigned)transaction.message.recentBlockhash=Keypair.generate().publicKey.toBase58();transaction.sign([walletKey]);return transaction;}}};
@@ -72,4 +75,14 @@ test('three-way policy displays creator wallet and only approves the exact verif
 });
 test('creator-share quote cannot substitute or omit the verified creator wallet',async()=>{
  for(const quoteChanges of [{creatorWallet:undefined},{creatorWallet:'1'.repeat(32)},{shares:[]}]){const f=fixture({creatorShare:true,quoteChanges});await f.open();await f.click('configure');assert.match(f.root().innerHTML,/preview does not match/);assert.equal(f.calls.includes('sign'),false);assert.equal(f.requests.some(r=>r.url.endsWith('/submit')),false);}
+});
+
+test('a shared AI and platform wallet shows the combined on-chain payment and internal reserve before approval',async()=>{
+ const f=fixture({creatorShare:true,sharedTreasury:true,configChanges:{platformMint:null,splitBps:{compute:6000,creator:3000,platform:1000}}});await f.open();assert.match(f.root().innerHTML,/Shared treasury · 70%/);assert.match(f.root().innerHTML,/Game creator · 30%/);assert.match(f.root().innerHTML,/Platform treasury 10% \+ AI compute 60%/);assert.match(f.root().innerHTML,/not separate on-chain reserves/);await f.click('configure');f.ack();await f.click('sign');assert.equal(f.calls.filter(c=>c==='sign').length,1);assert.equal(f.requests.filter(r=>r.url.endsWith('/submit')).length,1);
+});
+test('creator and treasury collisions combine into one actual recipient without requiring a platform token',async()=>{
+ const f=fixture({creatorShare:true,creatorIsTreasury:true,configChanges:{platformMint:null}});await f.open();assert.match(f.root().innerHTML,/Shared treasury · 100%/);await f.click('configure');f.ack();await f.click('sign');assert.equal(f.calls.filter(c=>c==='sign').length,1);
+});
+test('shared-wallet quotes cannot hide duplicated recipients or a wrong combined percentage',async()=>{
+ for(const shares of [[{address:'1'.repeat(32),shareBps:7000},{address:'1'.repeat(32),shareBps:3000}],[]]){const f=fixture({creatorShare:true,sharedTreasury:true,quoteChanges:{shares}});await f.open();await f.click('configure');assert.match(f.root().innerHTML,/preview does not match/);assert.equal(f.calls.includes('sign'),false);}
 });

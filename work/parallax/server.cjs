@@ -76,7 +76,7 @@ function createApp({key=process.env.OPENROUTER_API_KEY||'',orbioKey=process.env.
   let devnet=devnetService;
   function getDevnet(){if(!devnet){if(!stateDirectory)throw safeError('Persistent devnet storage is not configured',503);devnet=require('./devnet.cjs').createDevnetService({stateDirectory});}return devnet;}
   let solanaLaunches=null,pumpLaunch=pumpLaunchService;
-  function getPumpLaunch(){if(!pumpLaunch)pumpLaunch=require('./pump-launch.cjs').createPumpLaunchService({stateDirectory,enabled:settings.mainnetEnabled,rpcUrl:settings.solanaRpcUrl,now});return pumpLaunch;}
+  function getPumpLaunch(){if(!pumpLaunch)pumpLaunch=require('./pump-launch.cjs').createPumpLaunchService({stateDirectory,enabled:settings.mainnetEnabled,rpcUrl:settings.solanaRpcUrl,feeConfig:readFeeConfig(),requireFeeSharing:true,lookupTableAddress:settings.pumpLookupTableAddress,now});return pumpLaunch;}
   function getSolanaLaunches(){if(!solanaLaunches)solanaLaunches=require('./roblox-solana-launch.cjs').createRobloxSolanaLaunchService({stateDirectory,devnet:getDevnet(),mainnet:getPumpLaunch(),defaultCluster:settings.defaultCluster,getBuilds,getArtwork:input=>getLaunchArtwork().resolve(input),createMetadata:input=>metadata.create(input),validateModel:async id=>selectBuilderModel(await getModels(),id),inferenceProvider:provider,now});return solanaLaunches;}
   let solanaMarket=solanaMarketService;
   function getSolanaMarket(){if(!solanaMarket)solanaMarket=require('./solana-market.cjs').createSolanaMarketService({stateDirectory,now,rpcUrl:settings.solanaRpcUrl});return solanaMarket;}
@@ -564,5 +564,5 @@ function createApp({key=process.env.OPENROUTER_API_KEY||'',orbioKey=process.env.
   server.on('close',()=>{clearInterval(monitorTimer);clearInterval(agentTimer);try{agents?.close()?.catch(()=>{});}catch{/* The runner fails closed if its durable state is unavailable. */}});
   return {server,getFrame,getModels,monitorTick,agentTick};
 }
-if(require.main===module){const port=Number(process.env.PORT)||61281,stateDirectory=process.env.PARALLAX_STATE_DIR||path.join(__dirname,'private'),runtimeConfig=require('./runtime-config.cjs').readRuntimeConfig({stateDirectory});const app=createApp({port,stateDirectory,runtimeConfig,monitor:false,cameraWorkers:false});app.server.listen(port,runtimeConfig.bindHost,()=>console.log('Ropad listening on '+runtimeConfig.bindHost+':'+port));for(const event of ['SIGINT','SIGTERM'])process.on(event,()=>app.server.close(()=>process.exit(0)));}
+if(require.main===module){const port=Number(process.env.PORT)||61281,stateDirectory=process.env.PARALLAX_STATE_DIR||path.join(__dirname,'private'),runtimeConfig=require('./runtime-config.cjs').readRuntimeConfig({stateDirectory});const app=createApp({port,stateDirectory,runtimeConfig,budget:runtimeConfig.dailyComputeBudgetUsd,monitor:false,cameraWorkers:false});app.server.listen(port,runtimeConfig.bindHost,()=>console.log('Ropad listening on '+runtimeConfig.bindHost+':'+port));for(const event of ['SIGINT','SIGTERM'])process.on(event,()=>app.server.close(()=>process.exit(0)));}
 module.exports={createApp,parseSSE,reserveCost};

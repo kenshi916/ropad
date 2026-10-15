@@ -146,3 +146,29 @@ test('Solana and legacy EVM sessions coexist without losing historical ownership
   const created=await client.request('/api/builds',{gameName:'New Solana draft',brief:'An original platform jumping course',modelId:MODEL.id});assert.equal(created.status,201);
   await client.request('/api/auth/logout',{});assert.equal((await client.request('/api/builds/'+created.data.build.id)).data.build.canManage,false);assert.equal((await client.request('/api/builds/'+legacy.id)).data.build.canManage,true);
 });
+
+function mainnetFixture(t,{required=true,combined=false}={}){
+  const h=fixture(t),mint=Keypair.generate().publicKey.toBase58(),treasury=Keypair.generate().publicKey.toBase58();let saved;
+  const shares=combined?[{address:treasury,role:'combined',shareBps:7000,allocationsBps:{platform:1000,compute:6000}},{address:h.owner,role:'creator',shareBps:3000}]:[{address:treasury,role:'platform',shareBps:1000},{address:Keypair.generate().publicKey.toBase58(),role:'compute',shareBps:6000},{address:h.owner,role:'creator',shareBps:3000}];
+  const fee=required?{feeSharingRequired:true,feeSharingAtomic:true,permanentShares:true,feePolicyHash:'a'.repeat(64),feeShares:shares,sharingConfig:require('./parallax/node_modules/@pump-fun/pump-sdk').feeSharingConfigPda(new PublicKey(mint)).toBase58(),feeSharingVerified:false}:{};
+  const mainnet={config:()=>({cluster:'mainnet-beta',mainnetAvailable:true,feeSharingRequired:true}),prepareLaunch:async({owner,missionId})=>saved??(saved={cluster:'mainnet-beta',owner,missionId,mint,intentId:crypto.randomUUID(),status:'prepared',...fee}),status:async()=>structuredClone(saved),submit:async()=>structuredClone(saved)};
+  const options={...h.config,mainnet,defaultCluster:'mainnet-beta'},service=createRobloxSolanaLaunchService(options);
+  return {...h,service,options,shares,change:fields=>Object.assign(saved,fields),confirmed:()=>Object.assign(saved,{status:'confirmed',signature:bs58.encode(Buffer.alloc(64,8)),verified:true,finalized:true,metadataVerified:true,bondingCurveCreated:true,feeSharingVerified:true})};
+}
+test('required permanent fee snapshots survive restart and only verified routing creates the game',async t=>{
+  for(const combined of [false,true])await t.test(combined?'shared treasury':'separate treasuries',async t=>{
+    const h=mainnetFixture(t,{combined}),p=await h.service.prepare({owner:h.owner,...PROMPT});assert.deepEqual(p.feeShares,h.shares);assert.equal(p.feeSharingRequired,true);assert.equal(p.permanentShares,true);assert.equal(h.builds.list().length,0);
+    h.confirmed();h.change({feeSharingVerified:false});await assert.rejects(h.service.status({owner:h.owner,intentId:p.intentId}),/routing verification/);assert.equal(h.builds.list().length,0);assert.equal(h.service.list(h.owner)[0].status,'prepared');
+    h.change({feeSharingVerified:true});const restarted=createRobloxSolanaLaunchService(h.options),done=await restarted.status({owner:h.owner,intentId:p.intentId});assert.equal(done.feeSharingVerified,true);assert.equal(done.feePolicyHash,p.feePolicyHash);assert.deepEqual(done.feeShares,h.shares);assert.ok(done.buildId);assert.equal(h.builds.list().length,1);
+    assert.equal((await restarted.status({owner:h.owner,intentId:p.intentId})).buildId,done.buildId);assert.equal(h.builds.list().length,1);
+  });
+});
+test('fee downgrade, recipient replacement, policy changes and malformed combined allocations block game activation',async t=>{
+  for(const change of [()=>({feeSharingRequired:false}),()=>({feePolicyHash:'b'.repeat(64)}),()=>({sharingConfig:Keypair.generate().publicKey.toBase58()}),()=>({permanentShares:false}),h=>({feeShares:h.shares.map((r,i)=>i?{...r}:{...r,allocationsBps:{platform:1000,compute:5000}})}),h=>({feeShares:h.shares.map((r,i)=>i?{...r}:{...r,address:Keypair.generate().publicKey.toBase58()})})])await t.test('reject altered policy',async t=>{
+    const h=mainnetFixture(t,{combined:true}),p=await h.service.prepare({owner:h.owner,...PROMPT});h.confirmed();h.change(change(h));await assert.rejects(h.service.status({owner:h.owner,intentId:p.intentId}),/fee|routing/);assert.equal(h.builds.list().length,0);assert.equal(h.service.list(h.owner)[0].status,'prepared');
+  });
+});
+test('legacy confirmed mainnet launches remain recoverable without inheriting new fee verification claims',async t=>{
+  const h=mainnetFixture(t,{required:false}),p=await h.service.prepare({owner:h.owner,...PROMPT});assert.equal(p.feeSharingRequired,false);assert.equal(p.feeSharingAtomic,false);h.confirmed();h.change({feeSharingVerified:undefined});
+  const done=await h.service.status({owner:h.owner,intentId:p.intentId});assert.ok(done.buildId);assert.equal(done.feeSharingRequired,false);assert.equal(done.feeSharingVerified,false);assert.equal(done.permanentShares,false);
+});

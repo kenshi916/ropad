@@ -158,3 +158,102 @@ test('post-confirmation builder start submits only the reviewed bounded run afte
   const h=fixture({responses:{'/api/builds/game-build/agent':{build:{canManage:true}},'/api/builds/game-build/agent/start':{agent:{status:'running'}}}});await h.window.RopadSolana.connect('phantom');await h.open();h.body.querySelector('form').values={...brief,budgetUsd:'2.00'};await review(h,h.body.querySelector('form'));await h.body.querySelector('[data-solana-approve]').onclick();await h.body.querySelector('[data-launch-start-builder]').onclick();
   const request=h.requests.find(r=>/\/agent\/start$/.test(r.url));assert.equal(request.body.budgetUsd,2);assert.equal(h.window.location.hash,'#/workspace/game-build');
 });
+
+const atomicFeeQuote={
+  realFunds:true,simulation:'passed',transactionVersion:'v0',feeSharingRequired:true,feeSharingAtomic:true,permanentShares:true,
+  feePolicyHash:'a'.repeat(64),sharingConfig:'So11111111111111111111111111111111111111112',
+  feeShares:[{address:ADDRESS,shareBps:5000,role:'creator'},{address:OTHER,shareBps:3000,role:'compute'},{address:'33333333333333333333333333333333',shareBps:2000,role:'platform'}]
+};
+async function feeReview(quoteChanges={},responses={}){
+  const h=fixture({mainnet:true,preparedCluster:'mainnet-beta',quoteChanges:{...atomicFeeQuote,...quoteChanges},responses});
+  await h.window.RopadSolana.connect('phantom');await h.open();h.body.querySelector('form').values={...brief,cluster:'mainnet-beta'};await review(h,h.body.querySelector('form'));return h;
+}
+const confirmedFees=extra=>({...atomicFeeQuote,cluster:'mainnet-beta',status:'confirmed',owner:ADDRESS,mint:OTHER,intentId:'intent-one',launchId:'launch-one',buildSession:{id:'game-build'},...extra});
+
+test('atomic fee review shows exact shares and full recipients before wallet approval',async()=>{
+  const h=await feeReview({mission:{name:'<script>unsafe</script>',ticker:'SKY'}});
+  for(const address of atomicFeeQuote.feeShares.map(share=>share.address))assert.ok(h.body.innerHTML.includes('<code>'+address+'</code>'));
+  for(const label of ['Creator · 50%','Game AI budget · 30%','Ropad treasury · 20%','Permanent allocation','not trading volume','does not buy AI provider credits'])assert.ok(h.body.innerHTML.includes(label),label);
+  assert.ok(h.body.innerHTML.indexOf('Permanent allocation')<h.body.innerHTML.indexOf('data-solana-approve'));
+  assert.match(h.body.innerHTML,/&lt;script&gt;unsafe&lt;\/script&gt;/);assert.doesNotMatch(h.body.innerHTML,/<script>unsafe/);
+  assert.equal(h.body.querySelector('[data-solana-approve]').disabled,false);assert.equal(h.calls.includes('signTransaction'),false);
+});
+
+test('fee review preserves fractional basis-point percentages without rounding them to whole percentages',async()=>{
+  const h=await feeReview({feeShares:atomicFeeQuote.feeShares.map((share,index)=>({...share,shareBps:[3333,3333,3334][index]}))});
+  assert.match(h.body.innerHTML,/Creator · 33\.33%/);assert.match(h.body.innerHTML,/Ropad treasury · 33\.34%/);
+});
+
+test('missing or malformed required fee policies disable approval and cannot invoke wallet signing',async()=>{
+  const shares=atomicFeeQuote.feeShares,malicious='<img src=x onerror=alert(1)>';
+  for(const changes of [
+    {feeShares:undefined},{feeShares:[]},{feeShares:shares.map((share,index)=>({...share,shareBps:index?share.shareBps:4999}))},
+    {feeShares:[shares[0],{...shares[1],address:shares[0].address},shares[2]]},
+    {feeShares:[{...shares[0],role:undefined},shares[1],shares[2]]},
+    {feeShares:[{...shares[0],role:malicious},shares[1],shares[2]]},
+    {feeShares:[{...shares[0],address:malicious},shares[1],shares[2]]},
+    {feeShares:[{...shares[0],shareBps:'5000'},shares[1],shares[2]]},
+    {feeSharingAtomic:undefined},{feeSharingAtomic:false},{permanentShares:false},{feePolicyHash:''},{sharingConfig:''}
+  ]){
+    const h=await feeReview(changes);assert.equal(h.body.querySelector('[data-solana-approve]').disabled,true,JSON.stringify(changes));
+    assert.match(h.body.querySelector('[data-solana-feedback]').textContent,/fee routing|creator fee/i);
+    assert.doesNotMatch(h.body.innerHTML,/<img src=x onerror/);
+    await h.body.querySelector('[data-solana-approve]').onclick();
+    assert.equal(h.calls.includes('signTransaction'),false);assert.equal(h.requests.some(request=>request.url==='/api/solana/launches/submit'),false);
+    assert.equal(h.body.querySelector('[data-solana-approve]').disabled,true);
+  }
+});
+
+test('required fee routing is never shown as verified without explicit chain verification',async()=>{
+  const h=await feeReview();await h.body.querySelector('[data-solana-approve]').onclick();
+  assert.match(h.body.innerHTML,/Your game coin is confirmed/);assert.match(h.body.innerHTML,/Fee routing unverified/);
+  assert.doesNotMatch(h.body.innerHTML,/Creator fee routing verified on chain|data-launch-start-builder/);
+  assert.equal(h.requests.some(request=>/\/agent\/start$/.test(request.url)),false);
+});
+
+test('confirmation cannot drop a reviewed required fee policy to enable the builder',async()=>{
+  const h=await feeReview({}, {'/api/solana/launches/submit':confirmedFees({feeSharingRequired:false,feeSharingVerified:false})});
+  await h.body.querySelector('[data-solana-approve]').onclick();assert.match(h.body.innerHTML,/Fee routing unverified/);assert.doesNotMatch(h.body.innerHTML,/data-launch-start-builder/);
+});
+
+test('verified fee routing confirmation enables a separate builder action without buying credits or starting it',async()=>{
+  const h=await feeReview({}, {'/api/solana/launches/submit':confirmedFees({feeSharingVerified:true})});
+  await h.body.querySelector('[data-solana-approve]').onclick();assert.match(h.body.innerHTML,/Creator fee routing verified on chain/);assert.match(h.body.innerHTML,/data-launch-start-builder/);
+  assert.equal(h.requests.some(request=>/\/agent\/start$/.test(request.url)),false);
+});
+
+test('legacy confirmed launches without fee flags retain builder access but make no verified routing claim',async()=>{
+  const h=fixture();await h.window.RopadSolana.connect('phantom');await h.open();h.body.querySelector('form').values=brief;await review(h,h.body.querySelector('form'));await h.body.querySelector('[data-solana-approve]').onclick();
+  assert.match(h.body.innerHTML,/data-launch-start-builder/);assert.doesNotMatch(h.body.innerHTML,/Creator fee routing verified on chain|Permanent allocation|Fee routing unverified/);
+});
+
+test('a saved launch can recover verified routing without requesting another transaction signature',async()=>{
+  const h=await feeReview({}, {'/api/solana/launches/status':confirmedFees({feeSharingVerified:true})});
+  await h.body.querySelector('[data-solana-approve]').onclick();await h.body.querySelector('[data-solana-recheck-fees]').onclick();
+  assert.match(h.body.innerHTML,/Creator fee routing verified on chain/);assert.match(h.body.innerHTML,/data-launch-start-builder/);assert.equal(h.calls.filter(call=>call==='signTransaction').length,1);
+});
+
+const sharedWalletQuote={...atomicFeeQuote,feeShares:[{address:ADDRESS,shareBps:3000,role:'creator'},{address:OTHER,shareBps:7000,role:'combined',allocationsBps:{compute:6000,platform:1000}}]};
+test('shared treasury review distinguishes the actual on-chain recipient from internal compute allocation',async()=>{
+  const h=await feeReview(sharedWalletQuote);
+  for(const text of ['Creator · 30%','Shared wallet · 70%','Internal allocation: Game AI budget 60% · Ropad treasury 10% of creator fees','Pump does not enforce separate balances inside that wallet'])assert.ok(h.body.innerHTML.includes(text),text);
+  assert.equal(h.body.innerHTML.split('<code>'+OTHER+'</code>').length-1,2); // Mint and one shared recipient, never separate compute/platform rows.
+  assert.doesNotMatch(h.body.innerHTML,/<dt>Game AI budget · 60%|<dt>Ropad treasury · 10%/);assert.equal(h.body.querySelector('[data-solana-approve]').disabled,false);assert.equal(h.calls.includes('signTransaction'),false);
+});
+
+test('a shared wallet may include the creator while retaining exact internal allocation disclosure',async()=>{
+  const h=await feeReview({feeShares:[{address:OTHER,shareBps:10000,role:'combined',allocationsBps:{compute:6000,creator:3000,platform:1000}}]});
+  assert.match(h.body.innerHTML,/Shared wallet · 100%/);assert.match(h.body.innerHTML,/Game AI budget 60% · Creator 30% · Ropad treasury 10%/);assert.equal(h.body.querySelector('[data-solana-approve]').disabled,false);
+});
+
+test('shared allocations must be exact, known and unique and cannot mislabel a single recipient',async()=>{
+  for(const allocationsBps of [undefined,{},[],{compute:7000},{compute:6000,platform:999},{compute:'6000',platform:1000},{compute:6000,unknown:1000},{compute:7000,platform:0},{creator:1000,compute:6000}]){
+    const h=await feeReview({feeShares:[sharedWalletQuote.feeShares[0],{...sharedWalletQuote.feeShares[1],allocationsBps}]});
+    assert.equal(h.body.querySelector('[data-solana-approve]').disabled,true);await h.body.querySelector('[data-solana-approve]').onclick();assert.equal(h.calls.includes('signTransaction'),false);
+  }
+});
+
+test('verified combined routing allows a separate builder action without claiming two on-chain wallets',async()=>{
+  const h=await feeReview(sharedWalletQuote,{'/api/solana/launches/submit':confirmedFees({...sharedWalletQuote,feeSharingVerified:true})});await h.body.querySelector('[data-solana-approve]').onclick();
+  assert.match(h.body.innerHTML,/Creator fee routing verified on chain/);assert.match(h.body.innerHTML,/data-launch-start-builder/);assert.equal(h.requests.some(request=>/\/agent\/start$/.test(request.url)),false);
+});

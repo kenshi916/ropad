@@ -2,11 +2,12 @@
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path'),crypto=require('node:crypto');
 const {Keypair,PublicKey,VersionedTransaction}=require('./parallax/node_modules/@solana/web3.js'),{NATIVE_MINT}=require('./parallax/node_modules/@solana/spl-token');
 const pump=require('./parallax/node_modules/@pump-fun/pump-sdk'),bs58=require('./parallax/node_modules/bs58');
-const {createSolanaFeeSharingService,FILE_NAME}=require('./parallax/solana-fee-sharing.cjs');const {GENESIS_HASH}=require('./parallax/solana-fee-accounting.cjs');
-function fixture(t,{existing=false,graduated=false,creatorShare=false}={}){
+const {createSolanaFeeSharingService,FILE_NAME}=require('./parallax/solana-fee-sharing.cjs');const {GENESIS_HASH,feeRecipients}=require('./parallax/solana-fee-accounting.cjs');
+function fixture(t,{existing=false,graduated=false,creatorShare=false,sharedTreasury=false,creatorTreasury=false,omitPlatformMint=false}={}){
  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'ropad-sharing-'));t.after(()=>fs.rmSync(directory,{recursive:true,force:true}));const wallet=Keypair.generate(),mint=Keypair.generate().publicKey,projectId=crypto.randomUUID(),owner=wallet.publicKey.toBase58();
- const config={platformMint:Keypair.generate().publicKey.toBase58(),platformTreasury:Keypair.generate().publicKey.toBase58(),computeTreasury:Keypair.generate().publicKey.toBase58(),splitBps:creatorShare?{platform:1250,compute:3750,creator:5000}:{platform:2500,compute:7500},projects:[{projectId,sourceMint:mint.toBase58()}]},sharingAddress=pump.feeSharingConfigPda(mint);
- const shareholders=[{address:new PublicKey(config.platformTreasury),shareBps:config.splitBps.platform},{address:new PublicKey(config.computeTreasury),shareBps:config.splitBps.compute},...(creatorShare?[{address:wallet.publicKey,shareBps:config.splitBps.creator}]:[])];
+ const config={...(omitPlatformMint?{}:{platformMint:Keypair.generate().publicKey.toBase58()}),platformTreasury:creatorTreasury?owner:Keypair.generate().publicKey.toBase58(),computeTreasury:Keypair.generate().publicKey.toBase58(),splitBps:sharedTreasury||creatorTreasury?{platform:1000,compute:6000,creator:3000}:creatorShare?{platform:1250,compute:3750,creator:5000}:{platform:2500,compute:7500},projects:[{projectId,sourceMint:mint.toBase58()}]},sharingAddress=pump.feeSharingConfigPda(mint);
+ if(sharedTreasury)config.computeTreasury=config.platformTreasury;
+ const shareholders=feeRecipients(config,owner).map(share=>({address:new PublicKey(share.address),shareBps:share.shareBps}));
  const curve={creator:existing?sharingAddress:wallet.publicKey,quoteMint:NATIVE_MINT,complete:graduated},pool={baseMint:mint,quoteMint:NATIVE_MINT,coinCreator:curve.creator};let sharing=existing?{version:2,mint,admin:wallet.publicKey,adminRevoked:true,shareholders}:null;
  let time=1800000000000,sent=0,signed=null,receipt=null,status=null,throwSend=false,genesis=GENESIS_HASH,height=100,blockhashValid=true;
  const blockhash=Keypair.generate().publicKey.toBase58(),sdk=Object.create(pump.PUMP_SDK);sdk.decodeBondingCurve=()=>curve;sdk.decodeSharingConfig=()=>sharing;
@@ -29,8 +30,8 @@ test('history belongs to the signing wallet and changed ledger is preserved',asy
 test('explicit three-way shares use the verified creator and fit direct and graduated configurations',async t=>{
  for(const graduated of [false,true]){const f=fixture(t,{creatorShare:true,graduated}),p=await f.service.prepare({...f.input,creatorWallet:Keypair.generate().publicKey.toBase58()});assert.equal(p.creatorWallet,f.input.owner);assert.deepEqual(p.shares.find(s=>s.role==='creator'),{address:f.input.owner,shareBps:5000,role:'creator'});assert.equal(p.shares.length,3);assert.ok(Buffer.from(p.transactionBase64,'base64').length<=1232);assert.equal(f.service.config().creatorShareBps,5000);await f.service.submit({...f.input,intentId:p.intentId,signedTransactionBase64:f.sign(p)});f.finalize(p);assert.equal((await f.service.status({...f.input,intentId:p.intentId})).onChainConfigurationVerified,true);const inspected=await f.service.inspect(f.input);assert.equal(inspected.creatorWallet,f.input.owner);assert.equal(inspected.onChainConfigurationVerified,true);}
 });
-test('creator allocations fail closed without a trusted distinct creator and never accept browser recipients',async t=>{
- for(const kind of ['missing','treasury']){const f=fixture(t,{creatorShare:true}),service=createSolanaFeeSharingService({...f.options,resolveProjectCreator:kind==='missing'?undefined:async()=>f.config.computeTreasury});await assert.rejects(service.prepare({...f.input,creatorWallet:f.input.owner}),{code:'FEE_CREATOR_UNVERIFIED'});assert.equal(f.sent,0);}
+test('creator allocations fail closed without a trusted creator and never accept browser recipients',async t=>{
+ const missing=fixture(t,{creatorShare:true}),service=createSolanaFeeSharingService({...missing.options,resolveProjectCreator:undefined});await assert.rejects(service.prepare({...missing.input,creatorWallet:missing.input.owner}),{code:'FEE_CREATOR_UNVERIFIED'});assert.equal(missing.sent,0);
  const f=fixture(t);for(const splitBps of [{platform:1000,compute:2000,creator:6000},{platform:1000,compute:9000,creator:0},{platform:1000,compute:2000,creator:7000,extra:1}])assert.throws(()=>createSolanaFeeSharingService({...f.options,config:{...f.config,splitBps}}),{code:'INVALID_FEE_CONFIG'});
 });
 test('pending legacy shares verify against their signed recipients after a future three-way config is selected',async t=>{
@@ -38,4 +39,18 @@ test('pending legacy shares verify against their signed recipients after a futur
 });
 test('three-way accrued distributions retain exact configured shares in direct and graduated pools',async t=>{
  for(const graduated of [false,true]){const f=fixture(t,{creatorShare:true,existing:true,graduated}),p=await f.service.prepare({...f.input,action:'distribute'});assert.equal(p.shares.length,3);assert.equal(p.creatorWallet,f.input.owner);assert.ok(Buffer.from(p.transactionBase64,'base64').length<=1232);assert.equal(f.sent,0);}
+});
+test('shared AI and platform treasury configures and distributes a unique 70/30 split without a platform token',async t=>{
+ for(const graduated of [false,true]){
+  const f=fixture(t,{sharedTreasury:true,graduated,omitPlatformMint:true}),p=await f.service.prepare(f.input);assert.equal(p.platformMint,null);assert.equal(p.creatorWallet,f.input.owner);assert.deepEqual(p.shares,[{address:f.config.platformTreasury,shareBps:7000,role:'combined',allocationsBps:{platform:1000,compute:6000}},{address:f.input.owner,shareBps:3000,role:'creator'}]);assert.ok(Buffer.from(p.transactionBase64,'base64').length<=1232);
+  await f.service.submit({...f.input,intentId:p.intentId,signedTransactionBase64:f.sign(p)});f.finalize(p);assert.equal((await f.service.status({...f.input,intentId:p.intentId})).onChainConfigurationVerified,true);
+  const inspected=await f.service.inspect(f.input);assert.equal(inspected.creatorWallet,f.input.owner);assert.equal(inspected.onChainConfigurationVerified,true);
+  const distribution=await f.service.prepare({...f.input,action:'distribute'});assert.deepEqual(distribution.shares,p.shares);assert.equal(distribution.creatorWallet,f.input.owner);await f.service.submit({...f.input,intentId:distribution.intentId,signedTransactionBase64:f.sign(distribution)});f.finalize(distribution);assert.equal((await f.service.status({...f.input,intentId:distribution.intentId})).status,'confirmed');
+ }
+});
+test('a verified creator who also owns a treasury remains identifiable after merged-recipient configuration',async t=>{
+ for(const sharedTreasury of [false,true]){const f=fixture(t,{creatorTreasury:true,sharedTreasury}),p=await f.service.prepare(f.input),creator=p.shares.find(share=>share.allocationsBps?.creator);assert.equal(p.creatorWallet,f.input.owner);assert.equal(creator.address,f.input.owner);assert.equal(creator.allocationsBps.creator,3000);assert.equal(new Set(p.shares.map(share=>share.address)).size,p.shares.length);assert.equal(p.shares.reduce((sum,share)=>sum+share.shareBps,0),10000);
+  await f.service.submit({...f.input,intentId:p.intentId,signedTransactionBase64:f.sign(p)});f.finalize(p);assert.equal((await f.service.status({...f.input,intentId:p.intentId})).onChainConfigurationVerified,true);assert.equal((await f.service.inspect(f.input)).creatorWallet,f.input.owner);
+  const distribution=await f.service.prepare({...f.input,action:'distribute'});assert.equal(distribution.creatorWallet,f.input.owner);assert.deepEqual(distribution.shares,p.shares);
+ }
 });
