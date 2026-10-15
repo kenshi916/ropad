@@ -1,6 +1,7 @@
 'use strict';
 const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path'),crypto=require('node:crypto');
 const {createTokenMetadataService,externalImage}=require('./parallax/token-metadata.cjs');
+const {normalizeProjectLinks}=require('./parallax/project-links.cjs');
 function fixture(t,options={}){const directory=fs.mkdtempSync(path.join(os.tmpdir(),'ropad-token-metadata-'));t.after(()=>fs.rmSync(directory,{recursive:true,force:true}));return {directory,service:createTokenMetadataService({stateDirectory:directory,publicOrigin:'https://ropad.com',...options})};}
 const input={name:'Skyline Circuit',symbol:'SKY',description:'Rooftop racing',imageUrl:'https://images.ropad.com/skyline.png'};
 const sha=x=>crypto.createHash('sha256').update(x).digest('hex');
@@ -120,4 +121,24 @@ test('repeated crashes during quota saves leave only one bounded stage and recov
 test('unowned staging debris counts toward capacity and is preserved rather than deleted by a new upload',t=>{
   const f=fixture(t,{storageLimits:{globalBytes:100}}),directory=path.join(f.directory,'public-token-metadata'),name='.ropad-upload-'+('a'.repeat(64))+'.png.tmp';fs.mkdirSync(directory);fs.writeFileSync(path.join(directory,name),Buffer.alloc(100));
   assert.throws(()=>f.service.create(input,{owner:'1'.repeat(32)}),e=>e.status===429);assert.deepEqual(fs.readdirSync(directory),[name]);assert.equal(fs.statSync(path.join(directory,name)).size,100);
+});
+
+test('project links accept only bounded public HTTPS URLs and exact social hosts',()=>{
+ const links=normalizeProjectLinks({discord:' https://discord.gg/skyline ',telegram:'https://t.me/skyline',twitter:'https://X.com/skyline',website:'https://skyline.games'});
+ assert.deepEqual(links,{website:'https://skyline.games/',twitter:'https://x.com/skyline',telegram:'https://t.me/skyline',discord:'https://discord.gg/skyline'});
+ for(const value of [undefined,null,{}, {website:' ',twitter:'',telegram:null}])assert.equal(normalizeProjectLinks(value),undefined);
+ for(const value of [[], 'https://skyline.games', {unknown:'https://skyline.games'}, {website:42}])assert.throws(()=>normalizeProjectLinks(value),e=>e.status===400);
+ for(const website of ['javascript:alert(1)','data:text/html,hello','http://skyline.games','https://127.0.0.1','https://2130706433','https://[::1]','https://10.0.0.1','https://localhost','https://host.local','https://host.internal','https://host.localhost','https://u:private@skyline.games','https://skyline.games:444','https://skyline.games\\@evil.com','https://skyline.games/\nunsafe','https://skyline.games/'+'a'.repeat(512)])assert.throws(()=>normalizeProjectLinks({website}),e=>e.status===400&&!e.message.includes('private'),website);
+ for(const links of [{twitter:'https://x.com.evil.com/skyline'},{twitter:'https://evil.com/x.com'},{twitter:'https://t.me/skyline'},{telegram:'https://t.me.evil.com/skyline'},{telegram:'https://x.com/skyline'},{discord:'https://discord.gg.evil.com/skyline'},{discord:'https://evil.com/invite/skyline'}])assert.throws(()=>normalizeProjectLinks(links),e=>e.status===400);
+ assert.equal(normalizeProjectLinks({twitter:'https://twitter.com/skyline',telegram:'https://telegram.me/skyline',discord:'https://discord.com/invite/skyline'}).twitter,'https://twitter.com/skyline');
+});
+
+test('social metadata is immutable, canonical and backward-compatible when optional links are absent',t=>{
+ const f=fixture(t),base=f.service.create(input),links={website:'https://skyline.games',twitter:'https://x.com/skyline',telegram:'https://t.me/skyline',discord:'https://discord.gg/skyline'},linked=f.service.create({...input,links});
+ assert.equal(base.metadata.external_url,'https://ropad.com');assert.equal(Object.hasOwn(base.metadata,'website'),false);assert.equal(f.service.create({...input,links:{website:' ',twitter:''}}).metadataUri,base.metadataUri);
+ assert.equal(linked.metadata.external_url,'https://skyline.games/');assert.deepEqual(Object.fromEntries(Object.keys(links).map(key=>[key,linked.metadata[key]])),normalizeProjectLinks(links));
+ assert.notEqual(linked.metadataUri,base.metadataUri);assert.equal(f.service.create({...input,links:{discord:links.discord,telegram:links.telegram,twitter:links.twitter,website:'https://skyline.games/'}}).metadataUri,linked.metadataUri);
+ const changed=f.service.create({...input,links:{...links,telegram:'https://t.me/skyline_two'}});assert.notEqual(changed.metadataUri,linked.metadataUri);
+ assert.deepEqual(JSON.parse(f.service.read(linked.metadataUri.split('/').at(-1)).bytes),linked.metadata);
+ assert.throws(()=>f.service.create({...input,links:{website:'javascript:alert(1)'}}),e=>e.status===400);
 });

@@ -4,6 +4,7 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const {PublicKey}=require('@solana/web3.js');
 const {assertBuilderModelId,DEFAULT_BUILDER_MODEL_ID}=require('./builder-models.cjs');
+const {normalizeProjectLinks,normalizeProjectDescription}=require('./project-links.cjs');
 const fail=(message,status=400)=>Object.assign(new Error(message),{status});
 const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 const UUID=/^[a-f0-9-]{36}$/;
@@ -37,6 +38,8 @@ function missionData(input){
   const inspiration=input.inspiration==null||input.inspiration===''?'':field(input.inspiration,'Reference games',1200);
   const extra={};if(input.artworkId!==undefined){if(!UUID.test(input.artworkId))throw fail('Choose saved launch artwork');extra.artworkId=input.artworkId;}
   if(input.artDirection!==undefined&&input.artDirection!=='')extra.artDirection=field(input.artDirection,'Art direction',1200);
+  const description=normalizeProjectDescription(input.description),links=normalizeProjectLinks(input.links);
+  if(description!==undefined)extra.description=description;if(links)extra.links=links;
   return {kind:'roblox',name,ticker,brief:field(input.brief,'Game prompt',2400,12),modelId:assertBuilderModelId(input.modelId??DEFAULT_BUILDER_MODEL_ID),inspiration,template:'auto',...(input.metadataUri?{metadataUri:require('./pump-metadata.cjs').publicHttps(input.metadataUri)}:{}),...extra};
 }
 function decodeState(bytes,cluster='devnet'){
@@ -78,7 +81,7 @@ function createClusterLaunchService({stateDirectory,devnet,getBuilds,getArtwork,
     const {allowanceUsd,...settings}=devnet.config();
     if(cluster==='mainnet-beta'){if(settings.cluster!==cluster)throw fail('The mainnet launch service returned a different network',503);return {...settings,creatorOwnership:'Signed Solana launching wallet'};}
     if(settings.cluster!=='devnet'||settings.rpcUrl!=='https://api.devnet.solana.com')throw fail('Only the pinned Solana Devnet launch service is available',503);
-    return {...settings,chain:'solana',networkName:'Solana devnet',mainnetAvailable:false,tradingAvailable:false,liquidityCreated:false,metadataOnchain:false,computeFunding:'Sponsored server compute under the shared daily budget; test SOL is not converted to AI credits',creatorOwnership:'Signed Solana launching wallet'};
+    return {...settings,chain:'solana',networkName:'Solana devnet',mainnetAvailable:false,tradingAvailable:false,liquidityCreated:false,metadataOnchain:false,computeFunding:'Test SOL does not fund AI credits; builds require available project credit and server compute allowance',creatorOwnership:'Signed Solana launching wallet'};
   }
   function owned(owner,{launchId,intentId}){
     address(owner,true);
@@ -110,7 +113,7 @@ function createClusterLaunchService({stateDirectory,devnet,getBuilds,getArtwork,
     record.result=safe;record.intentId=result.intentId;record.status=result.status;record.updatedAt=now();delete record.lastError;save();
     if(record.status==='confirmed'){
       try{
-        const m=record.mission,artwork=await artworkFor(record.owner,m),builds=getBuilds(),build=builds.create({owner:record.owner,gameName:m.name,brief:m.brief,template:'auto',inspiration:m.inspiration,modelId:m.modelId,inferenceProvider,idempotencyKey:'solana-'+cluster+':'+record.launchId,token:{chain:'solana',cluster,address:result.mint,symbol:m.ticker,signature:result.signature,verified:true,marketCapUsd:null}});
+        const m=record.mission,artwork=await artworkFor(record.owner,m),builds=getBuilds(),build=builds.create({owner:record.owner,gameName:m.name,brief:m.brief,template:'auto',inspiration:m.inspiration,modelId:m.modelId,inferenceProvider,idempotencyKey:'solana-'+cluster+':'+record.launchId,token:{chain:'solana',cluster,address:result.mint,symbol:m.ticker,signature:result.signature,verified:true,marketCapUsd:null,...(m.description!==undefined?{description:m.description}:{}),...(m.links?{links:m.links}:{})}});
         if(artwork){if(typeof builds.attachLaunchArtwork!=='function')throw fail('Game artwork attachment is unavailable',503);builds.attachLaunchArtwork({id:build.id,owner:record.owner,artwork});}
         record.buildId=build.id;delete record.buildError;save();
       }catch{record.buildError='Your token is confirmed; retry this launch status to recover the workspace without paying again';save();}
@@ -130,7 +133,7 @@ function createClusterLaunchService({stateDirectory,devnet,getBuilds,getArtwork,
       const artwork=await artworkFor(owner,mission);
       if(artwork&&cluster==='mainnet-beta'){
         if(typeof createMetadata!=='function'||!artwork.coinIcon.publicUrl)throw fail('Configure public HTTPS artwork hosting before a mainnet launch',503);
-        const metadata=await createMetadata({name:mission.name,symbol:mission.ticker,description:mission.brief,imageUrl:artwork.coinIcon.publicUrl});
+        const metadata=await createMetadata({name:mission.name,symbol:mission.ticker,description:mission.description??mission.brief,imageUrl:artwork.coinIcon.publicUrl,...(mission.links?{links:mission.links}:{})});
         if(mission.metadataUri&&mission.metadataUri!==metadata.metadataUri)throw fail('This metadata does not match the selected launch artwork',409);
         mission=missionData({...mission,metadataUri:metadata.metadataUri});
       }

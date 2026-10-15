@@ -6,6 +6,18 @@
   const decimal = value => typeof value === 'string' && value.length <= 80 && /^(?:0|[1-9]\d*)(?:\.\d+)?$/.test(value) && Number.isFinite(Number(value)) && Number(value) > 0;
   const nameOf = (build, helpers) => typeof helpers.name === 'function' ? helpers.name(build) : build.gameName || build.name || 'Untitled game';
   const tokenOf = build => build.token || build.coin || {};
+  function socialLinks(build){
+    const fields={website:'Website',twitter:'X',discord:'Discord',telegram:'Telegram'},links=tokenOf(build).links;
+    if(!links||typeof links!=='object')return '';
+    const items=Object.entries(fields).map(([key,label])=>{try{
+      const value=links[key];if(typeof value!=='string'||value.length>512)return '';
+      const raw=value.trim(),url=new URL(raw),host=url.hostname.toLowerCase();
+      if(/[\x00-\x20\x7f\\]/.test(raw)||url.href.length>512||url.protocol!=='https:'||url.username||url.password||url.port&&url.port!=='443'||!host.includes('.')||host.endsWith('.')||host.split('.').some(label=>!/^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/.test(label))||/[:\[\]]/.test(host)||/^[\d.]+$/.test(host)||/(^|\.)(localhost|local|internal|test|invalid|example|lan|home|onion|arpa)$/.test(host))return '';
+      if(key==='twitter'&&!['x.com','www.x.com','twitter.com','www.twitter.com'].includes(host)||key==='telegram'&&!['t.me','www.t.me','telegram.me','www.telegram.me'].includes(host)||key==='discord'&&!['discord.gg','www.discord.gg','discord.com','www.discord.com','discordapp.com','www.discordapp.com'].includes(host))return '';
+      return `<a href="${esc(url.href)}" target="_blank" rel="noopener noreferrer nofollow">${label} <span aria-hidden="true">↗</span></a>`;
+    }catch{return '';}}).join('');
+    return items?`<nav class="rp-token-socials" aria-label="Project links">${items}</nav>`:'';
+  }
   const href = (kind, build, helpers) => '#/' + kind + '/' + encodeURIComponent(build.id);
   function identity(build) {
     const token = tokenOf(build); let wallet;
@@ -60,10 +72,10 @@
   }
   function heading(build, helpers) {
     const name = nameOf(build,helpers), token = tokenOf(build), symbol = token.symbol || build.ticker || '', image = coinImage(build)?{url:coinImage(build),kind:'artwork'}:imageFor(build);
-    return `<div class="rp-token-identity"><div class="rp-token-avatar">${image?.kind === 'artwork' ? `<img src="${esc(image.url)}" alt="">` : `<span>${esc(name.slice(0,2).toUpperCase())}</span>`}</div><div><div class="rp-token-title"><h1>${esc(name)}</h1>${symbol ? `<span class="rp-token-ticker">$${esc(symbol)}</span>` : ''}</div><div class="rp-token-badges"><span><i class="rp-network-dot"></i>${esc(network(build))}</span></div></div></div><div class="rp-token-actions"><a class="rp-button rp-button-secondary" href="${href('workspace',build,helpers)}">Creator studio</a><a class="rp-button rp-button-primary" href="${href('play',build,helpers)}"><span aria-hidden="true">▷</span> Play game</a></div>`;
+    return `<div class="rp-token-identity"><div class="rp-token-avatar">${image?.kind === 'artwork' ? `<img src="${esc(image.url)}" alt="">` : `<span>${esc(name.slice(0,2).toUpperCase())}</span>`}</div><div><div class="rp-token-title"><h1>${esc(name)}</h1>${symbol ? `<span class="rp-token-ticker">$${esc(symbol)}</span>` : ''}</div><div class="rp-token-badges"><span><i class="rp-network-dot"></i>${esc(network(build))}</span></div>${socialLinks(build)}</div></div><div class="rp-token-actions"><a class="rp-button rp-button-secondary" href="${href('workspace',build,helpers)}">Creator studio</a><a class="rp-button rp-button-primary" href="${href('play',build,helpers)}"><span aria-hidden="true">▷</span> Play game</a></div>`;
   }
   function game(build, helpers) {
-    const image = imageFor(build), name = nameOf(build,helpers), description = [build.plan?.summary,build.plan?.design?.coreLoop,build.plan?.design?.objective,build.brief].find(value => typeof value === 'string' && value.trim()) || 'The creator’s game brief will appear here';
+    const image = imageFor(build), name = nameOf(build,helpers), description = [tokenOf(build).description,build.plan?.summary,build.plan?.design?.coreLoop,build.plan?.design?.objective,build.brief].find(value => typeof value === 'string' && value.trim()) || 'The creator’s game brief will appear here';
     const brief = description.length > 240 ? description.slice(0,237).replace(/\s+\S*$/,'').trimEnd() + '…' : description;
     return `<a class="rp-game-visual${image ? '' : ' rp-game-visual-empty'}" href="${href('play',build,helpers)}" aria-label="Open ${esc(name)} game page">${image ? `<img src="${esc(image.url)}" alt="${esc(image.label)} for ${esc(name)}" loading="lazy"><span class="rp-game-image-label">${esc(image.label)}</span>` : `<div><span class="rp-game-empty-icon" aria-hidden="true">⌘</span><strong>A new world starts here</strong><p>The game’s artwork or a real Studio capture will appear as the creator builds</p></div>`}</a><div class="rp-game-content"><h2>About this game</h2><p>${esc(brief)}</p></div>`;
   }

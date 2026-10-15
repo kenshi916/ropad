@@ -29,7 +29,8 @@ function buildToken(token){
     const address=text(token.address,'Solana mint',44);try{if(new PublicKey(address).toBase58()!==address)throw Error();}catch{throw fail(400,'Invalid Solana mint');}
     if(!['devnet','mainnet-beta'].includes(token.cluster))throw fail(400,'Choose an explicit Solana cluster');
     const signature=text(token.signature||token.transactionHash,'Solana signature',88);if(!/^[1-9A-HJ-NP-Za-km-z]{64,88}$/.test(signature))throw fail(400,'Invalid Solana transaction signature');
-    return {chain:'solana',cluster:token.cluster,chainId:null,chainName:token.cluster==='devnet'?'Solana devnet':'Solana mainnet',address,symbol:text(token.symbol,'Token symbol',16),signature,transactionHash:signature,verified:token.verified===true,marketCapUsd:null,agentId:null};
+    const {normalizeProjectLinks,normalizeProjectDescription}=require('./project-links.cjs'),links=normalizeProjectLinks(token.links),description=normalizeProjectDescription(token.description);
+    return {chain:'solana',cluster:token.cluster,chainId:null,chainName:token.cluster==='devnet'?'Solana devnet':'Solana mainnet',address,symbol:text(token.symbol,'Token symbol',16),signature,transactionHash:signature,verified:token.verified===true,marketCapUsd:null,agentId:null,...(description!==undefined?{description}:{}),...(links?{links}:{})};
   }
   return {address:text(token.address,'Token address',160),symbol:text(token.symbol,'Token symbol',16),chainId:Number(token.chainId||4663),chainName:text(token.chainName,'Chain name',80,'Robinhood Chain'),transactionHash:text(token.transactionHash,'Transaction hash',160),verified:token.verified===true,agentId:token.agentId?text(String(token.agentId),'Agent ID',100):null,marketCapUsd:null};
 }
@@ -220,6 +221,8 @@ function parseStoredState(bytes) {
   for (const session of state.sessions) {
     if (!session || typeof session !== 'object' || typeof session.id !== 'string' || !/^[a-f0-9-]{36}$/.test(session.id) || ids.has(session.id) || typeof session.owner !== 'string' || !session.owner || ![...TEMPLATES,'auto'].includes(session.template) || !Array.isArray(session.events)) throw new Error('Invalid saved build record');
     ids.add(session.id); if (session.plan) validatePlan(session.plan);
+    if(session.token?.links!==undefined){const links=require('./project-links.cjs').normalizeProjectLinks(session.token.links);if(JSON.stringify(links)!==JSON.stringify(session.token.links))throw new Error('Invalid saved project links');}
+    if(session.token?.description!==undefined&&require('./project-links.cjs').normalizeProjectDescription(session.token.description)!==session.token.description)throw new Error('Invalid saved public description');
     if (session.queue?.requireAgentWorker !== undefined && typeof session.queue.requireAgentWorker !== 'boolean') throw new Error('Invalid saved worker requirement');
     if (session.queue?.requireVisualReview !== undefined && typeof session.queue.requireVisualReview !== 'boolean') throw new Error('Invalid saved visual worker requirement');
     if (session.revisionFingerprint != null && !/^[a-f0-9]{64}$/.test(session.revisionFingerprint)) throw new Error('Invalid saved revision identity');

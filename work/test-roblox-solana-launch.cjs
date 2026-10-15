@@ -5,7 +5,7 @@ const {Keypair,Transaction,PublicKey}=require('./parallax/node_modules/@solana/w
 const bs58=require('./parallax/node_modules/bs58');
 const {createDevnetService}=require('./parallax/devnet.cjs');
 const {createRobloxBuildService}=require('./parallax/roblox-builds.cjs');
-const {createRobloxSolanaLaunchService}=require('./parallax/roblox-solana-launch.cjs');
+const {createRobloxSolanaLaunchService,missionData}=require('./parallax/roblox-solana-launch.cjs');
 const {createApp}=require('./parallax/server.cjs');
 const MODEL={id:'anthropic/claude-opus-5.5',name:'Opus',architecture:{output_modalities:['text']},pricing:{prompt:'0.0000001',completion:'0.0000001'}};
 const PROMPT={name:'Skyline Sprint',ticker:'SKY',brief:'An original city rooftop footrace with checkpoints and a finish',modelId:MODEL.id,inspiration:'Clear checkpoints and a visible completion goal'};
@@ -31,6 +31,33 @@ test('prompt launches prepare the exact devnet SPL transaction and create one So
   assert.equal(fs.existsSync(path.join(h.directory,'missions.json')),false);assert.doesNotMatch(JSON.stringify(confirmed),/SecretKey|signedTransactionBase64/);
   const again=await h.service.status({owner:h.owner,intentId:prepared.intentId});assert.equal(again.buildId,b.id);assert.equal(h.builds.list().length,1);assert.equal(h.rpc.sent.length,1);
   const revision=h.builds.revise({id:b.id,owner:h.owner,brief:'Extend the full rooftop race with additional safe checkpoints'});assert.deepEqual(revision.token,b.token);assert.equal(revision.lineage.projectId,b.id);
+});
+
+test('public description and project links freeze into launch identity and persist across builds, revisions and restart',async t=>{
+ const h=fixture(t),links={discord:'https://discord.gg/skyline',website:'https://skyline.games',twitter:'https://X.com/skyline',telegram:'https://t.me/skyline'},description='Race the rooftops with friends';
+ const p=await h.service.prepare({owner:h.owner,mission:{...PROMPT,description,links}}),canonical={website:'https://skyline.games/',twitter:'https://x.com/skyline',telegram:links.telegram,discord:links.discord};
+ assert.equal(p.mission.description,description);assert.equal(p.mission.brief,PROMPT.brief);assert.deepEqual(p.mission.links,canonical);
+ const retry=await h.service.prepare({owner:h.owner,...PROMPT,description:' '+description+' ',links:{...canonical}});assert.equal(retry.launchId,p.launchId);
+ const unchanged=await h.service.prepare({owner:h.owner,launchId:p.launchId,mission:{...PROMPT,description:'Changed',links:{website:'https://other.games'}}});assert.deepEqual(unchanged.mission,p.mission);
+ const done=await h.service.submit({owner:h.owner,intentId:p.intentId,signedTransactionBase64:sign(p,h.key)});assert.deepEqual(done.buildSession.token.links,canonical);assert.equal(done.buildSession.token.description,description);
+ const revision=h.builds.revise({id:done.buildId,owner:h.owner,brief:'Extend this original rooftop game with another connected district'});assert.deepEqual(revision.token.links,canonical);assert.equal(revision.token.description,description);
+ const restartedBuilds=createRobloxBuildService({stateDirectory:h.directory}),restarted=createRobloxSolanaLaunchService({...h.config,getBuilds:()=>restartedBuilds});assert.deepEqual(restarted.list(h.owner)[0].mission.links,canonical);assert.deepEqual(restartedBuilds.get(revision.id).token.links,canonical);
+ const changed=await restarted.prepare({owner:h.owner,...PROMPT,description,links:{...canonical,twitter:'https://x.com/skyline_two'}});assert.notEqual(changed.launchId,p.launchId);assert.equal(h.rpc.sent.length,1);
+});
+
+test('missing optional public fields preserve legacy fingerprints and invalid values fail before RPC',async t=>{
+ const h=fixture(t),legacy=missionData(PROMPT);assert.equal(Object.hasOwn(legacy,'links'),false);assert.equal(Object.hasOwn(legacy,'description'),false);assert.deepEqual(missionData({...PROMPT,description:' ',links:{website:'',twitter:null}}),legacy);
+ for(const patch of [{description:'x'.repeat(281)},{description:42},{links:{website:'https://localhost'}},{links:{twitter:'javascript:alert(1)'}},{links:{telegram:'https://evil.com/channel'}},{links:{discord:'https://discord.gg.evil.com/invite'}}])await assert.rejects(h.service.prepare({owner:h.owner,...PROMPT,...patch}),e=>e.status===400);
+ assert.equal(h.service.list(h.owner).length,0);assert.equal(h.rpc.sent.length,0);
+ const p=await h.service.prepare({owner:h.owner,...PROMPT}),restarted=createRobloxSolanaLaunchService(h.config);assert.equal((await restarted.prepare({owner:h.owner,...PROMPT,description:'',links:{}})).launchId,p.launchId);
+});
+
+test('tampered stored links invalidate launch fingerprints and unsafe saved build links fail closed',async t=>{
+ const h=fixture(t),p=await h.service.prepare({owner:h.owner,...PROMPT,links:{website:'https://skyline.games'}}),done=await h.service.submit({owner:h.owner,intentId:p.intentId,signedTransactionBase64:sign(p,h.key)});
+ const launchFile=path.join(h.directory,'roblox-solana-launches.json'),launchState=JSON.parse(fs.readFileSync(launchFile));launchState.launches[0].mission.links.website='https://altered.games/';const altered=JSON.stringify(launchState);fs.writeFileSync(launchFile,altered);
+ assert.throws(()=>createRobloxSolanaLaunchService(h.config),/unreadable/);assert.equal(fs.readFileSync(launchFile,'utf8'),altered);
+ const buildFile=path.join(h.directory,'roblox-builds','sessions.json'),buildState=JSON.parse(fs.readFileSync(buildFile));buildState.sessions.find(row=>row.id===done.buildId).token.links.website='javascript:alert(1)';const badBuild=JSON.stringify(buildState);fs.writeFileSync(buildFile,badBuild);
+ assert.throws(()=>createRobloxBuildService({stateDirectory:h.directory}),/unreadable/);assert.equal(fs.readFileSync(buildFile,'utf8'),badBuild);
 });
 test('another owner, altered signed messages, and unsupported builder models cannot launch or attach a token',async t=>{
   const h=fixture(t);await assert.rejects(h.service.prepare({owner:h.owner,...PROMPT,modelId:'google/gemini-2.5-flash'}),/Opus 5.5 or GPT-6 Astra/);

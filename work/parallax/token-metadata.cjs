@@ -1,6 +1,7 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),net=require('node:net');
 const {publicOrigin:validateOrigin}=require('./runtime-config.cjs');
+const {normalizeProjectLinks}=require('./project-links.cjs');
 const fail=(message,status=400)=>Object.assign(new Error(message),{status});
 const OBJECT_NAME=/^[a-f0-9]{64}\.(json|png|jpg)$/;
 const STORAGE_LIMITS=Object.freeze({globalBytes:128*1024*1024,globalFiles:10000,walletBytes:16*1024*1024,walletFiles:100,uploadsPerMinute:5});
@@ -100,11 +101,11 @@ function createTokenMetadataService({stateDirectory,publicOrigin,now=Date.now,st
     }
     saved.uploads.push({owner:ownerHash,requestHash,at:timestamp,objects:missing.map(item=>({name:item.name,bytes:item.bytes.length}))});saveUsage(saved);
   }
-  function create({name,symbol,description='',imageUrl,imageBase64,contentType},{owner}={}){
+  function create({name,symbol,description='',imageUrl,imageBase64,contentType,links:inputLinks},{owner}={}){
     if(!directory||!origin)throw fail(config().reason||'Persistent metadata storage is required',503);
     if(owner!==undefined&&(typeof owner!=='string'||!/^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(owner)))throw fail('Verified creator wallet required',401);
     if(typeof name!=='string'||!name.trim()||Buffer.byteLength(name.trim())>32||/[\x00-\x1f\x7f]/.test(name)||typeof symbol!=='string'||!/^[A-Za-z][A-Za-z0-9]{1,9}$/.test(symbol)||typeof description!=='string'||description.length>2400)throw fail('Provide a token name, symbol and a description within the supported lengths');
-    let image;const objects=[];
+    const links=normalizeProjectLinks(inputLinks);let image;const objects=[];
     if(imageBase64){
       if(imageUrl)throw fail('Choose one token image source');
       if(typeof imageBase64!=='string'||imageBase64.length>2800000||!/^[A-Za-z0-9+/]+={0,2}$/.test(imageBase64))throw fail('Choose a PNG or JPEG image smaller than 2 MB');
@@ -113,7 +114,7 @@ function createTokenMetadataService({stateDirectory,publicOrigin,now=Date.now,st
       if(!(png&&contentType==='image/png'||jpg&&contentType==='image/jpeg'))throw fail('Token artwork must be a PNG or JPEG image');
       const item=object(bytes,png?'png':'jpg');objects.push(item);image=item.url;
     }else image=externalImage(imageUrl);
-    const metadata={name:name.trim(),symbol:symbol.toUpperCase(),description:description.trim(),image,external_url:origin};
+    const metadata={name:name.trim(),symbol:symbol.toUpperCase(),description:description.trim(),image,external_url:links?.website||origin,...links};
     const metadataObject=object(Buffer.from(JSON.stringify(metadata)),'json'),metadataUri=metadataObject.url;objects.push(metadataObject);
     if(metadataUri.length>200)throw fail('The configured domain produces a metadata URI longer than Pump supports',503);
     reserve(objects,owner,metadataObject.name.split('.')[0]);for(const item of objects)put(item);

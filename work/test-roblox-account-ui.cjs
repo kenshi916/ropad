@@ -22,8 +22,8 @@ function fixture({account=configured,wallet=true,startUrl='https://apis.roblox.c
 }
 test('unconfigured account card remains honest and mounting performs only reads',async()=>{
   const h=fixture({account:{...configured,configured:false,reason:'Open the configured Ropad origin'}});await h.window.RopadRobloxAccount.mount(h.host);
-  assert.match(h.host.innerHTML,/Roblox connection setup pending/);assert.match(h.host.innerHTML,/build now and publish from your own Roblox Studio/);assert.doesNotMatch(h.host.innerHTML,/data-ra-connect[\s>]/);assert.equal(h.calls.length,0);assert.equal(h.requests.some(r=>r.method==='POST'),false);
-  h.host.querySelector('[data-ra-details]').onclick();assert.match(h.host.innerHTML,/Open the configured Ropad origin/);assert.match(h.host.innerHTML,/do not need to send a password or API key/);
+  assert.match(h.host.innerHTML,/Roblox connection setup pending/);assert.match(h.host.innerHTML,/publication uses your own Roblox account or group/);assert.doesNotMatch(h.host.innerHTML,/build now|build can continue|data-ra-connect[\s>]/);assert.equal(h.calls.length,0);assert.equal(h.requests.some(r=>r.method==='POST'),false);
+  h.host.querySelector('[data-ra-details]').onclick();assert.match(h.host.innerHTML,/Open the configured Ropad origin/);assert.match(h.host.innerHTML,/do not need to send a password or API key/);assert.doesNotMatch(h.host.innerHTML,/build now|build can continue/);
 });
 test('connecting Roblox without a Solana wallet opens the wallet picker and creates no OAuth request',async()=>{
   const h=fixture({wallet:false});await h.window.RopadRobloxAccount.mount(h.host);await h.host.querySelector('[data-ra-connect]').onclick();

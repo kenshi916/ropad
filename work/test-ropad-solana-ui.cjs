@@ -8,6 +8,8 @@ class Element{
   querySelectorAll(){return [];}
   showModal(){this.open=true;}close(){this.open=false;this.closeHandler?.();}addEventListener(event,handler){if(event==='close')this.closeHandler=handler;else this['on'+event]=handler;}
   insertAdjacentHTML(_,value){this.innerHTML+=value;}
+  setCustomValidity(message){this.validationMessage=message;}
+  reportValidity(){return !this.validationMessage&&[...this.nodes.values()].every(node=>!node.validationMessage);}
 }
 function fixture({installed=true,changedDuringSign=false,changedDuringTransaction=false,submissionError=false,preparedCluster='devnet',quoteChanges={},logoutGate=null,logoutError=false,mainnet=false,statusResult=null,responses={}}={}){
   const requests=[],calls=[],listeners={},host=new Element(),launch=new Element(),body=new Element(),nodes={'launch-dialog':launch,'launch-body':body,'info-body':host};
@@ -17,7 +19,7 @@ function fixture({installed=true,changedDuringSign=false,changedDuringTransactio
   const window={location:{hash:"#/"},phantom:installed?{solana:provider}:null,openInfo:(_,html)=>{host.innerHTML=html;},dispatchEvent:event=>events.push(event),ParallaxBuilders:{refresh(){calls.push('refresh');}},solanaWeb3:{Transaction:{from:()=>({feePayer:{toString:()=>ADDRESS}})}}};
   const intent={cluster:preparedCluster,owner:ADDRESS,launchId:'launch-one',intentId:'intent-one',status:'prepared',transactionBase64:'AQID',mint:OTHER,fundingLamports:10000000,rentLamports:3000000,estimatedNetworkFeeLamports:5000,totalRequiredLamports:13005000,...quoteChanges};
   window.solanaWeb3.VersionedTransaction={deserialize:()=>({message:{staticAccountKeys:[{toString:()=>ADDRESS}]}})};
-  const context={window,crypto:require("node:crypto"),setTimeout,clearTimeout,document:{getElementById:id=>nodes[id],querySelectorAll:()=>[]},AbortSignal,Uint8Array,TextEncoder,CustomEvent:class{constructor(type,options){this.type=type;this.detail=options.detail;}},btoa:value=>Buffer.from(value,'binary').toString('base64'),atob:value=>Buffer.from(value,'base64').toString('binary'),FormData:class{constructor(form){this.form=form;}*[Symbol.iterator](){yield*Object.entries(this.form.values);}},fetch:async(url,options={})=>{
+  const context={window,URL,crypto:require("node:crypto"),setTimeout,clearTimeout,document:{getElementById:id=>nodes[id],querySelectorAll:()=>[]},AbortSignal,Uint8Array,TextEncoder,CustomEvent:class{constructor(type,options){this.type=type;this.detail=options.detail;}},btoa:value=>Buffer.from(value,'binary').toString('base64'),atob:value=>Buffer.from(value,'base64').toString('binary'),FormData:class{constructor(form){this.form=form;}*[Symbol.iterator](){yield*Object.entries(this.form.values);}},fetch:async(url,options={})=>{
     requests.push({url,method:options.method||'GET',body:options.body?JSON.parse(options.body):null});
     if(url==='/api/auth/logout'){if(logoutGate)await logoutGate;if(logoutError)throw Error('Creator logout failed');}
     if(url==='/api/solana/launches/submit'&&submissionError)throw Error('Submission response was interrupted');
@@ -256,4 +258,39 @@ test('shared allocations must be exact, known and unique and cannot mislabel a s
 test('verified combined routing allows a separate builder action without claiming two on-chain wallets',async()=>{
   const h=await feeReview(sharedWalletQuote,{'/api/solana/launches/submit':confirmedFees({...sharedWalletQuote,feeSharingVerified:true})});await h.body.querySelector('[data-solana-approve]').onclick();
   assert.match(h.body.innerHTML,/Creator fee routing verified on chain/);assert.match(h.body.innerHTML,/data-launch-start-builder/);assert.equal(h.requests.some(request=>/\/agent\/start$/.test(request.url)),false);
+});
+
+test('public identity and community links survive builder navigation and reach launch preparation',async()=>{
+  const h=fixture();await h.window.RopadSolana.connect('phantom');await h.open();
+  assert.match(h.body.innerHTML,/Website & social links/);assert.ok(h.body.innerHTML.indexOf('name="name"')<h.body.innerHTML.indexOf('name="brief"'));
+  const links={website:'https://skyline.game/',twitter:'https://x.com/skyline',discord:'https://discord.gg/skyline',telegram:'https://t.me/skyline'};
+  h.body.querySelector('form').values={...brief,...links,description:'Race above the clouds'};
+  await h.body.querySelector('form').onsubmit({preventDefault(){}});
+  await h.body.querySelector('[data-launch-back]').onclick();
+  for(const value of Object.values(links))assert.ok(h.body.innerHTML.includes(value));
+  assert.match(h.body.innerHTML,/Race above the clouds/);
+  await review(h,h.body.querySelector('form'));
+  const request=h.requests.find(r=>r.url==='/api/solana/launches/prepare');
+  assert.deepEqual(request.body.links,links);assert.equal(request.body.description,'Race above the clouds');assert.equal(request.body.website,undefined);
+  assert.match(h.body.innerHTML,/Public project details/);assert.equal(h.calls.includes('signTransaction'),false);
+});
+
+test('unsafe community links block progression before wallet verification or artwork generation',async()=>{
+  for(const invalid of [{website:'javascript:alert(1)'},{website:'https://127.0.0.1/'},{website:'https://user:secret@site.com/'},{website:'https://private.lan/'},{website:'https://private.home/'},{website:'https://site.com./'},{website:'https://site.com/a\nb'},{twitter:'https://x.com.attacker.com/name'},{telegram:'https://elsewhere.com/a'},{discord:'http://discord.gg/a'}]){
+    const h=fixture();await h.open();h.body.querySelector('form').values={...brief,...invalid};
+    await h.body.querySelector('form').onsubmit({preventDefault(){}});
+    assert.match(h.body.innerHTML,/Make it yours/);assert.equal(h.requests.some(r=>r.method==='POST'),false);assert.equal(h.calls.includes('signMessage'),false);
+  }
+});
+
+test('review displays the saved mission links and escapes its public description',async()=>{
+  const h=fixture({quoteChanges:{mission:{...brief,description:'<b>Saved public summary</b>',links:{website:'https://saved.game/'}}}});
+  await h.window.RopadSolana.connect('phantom');await h.open();h.body.querySelector('form').values={...brief,website:'https://draft.game/'};await review(h,h.body.querySelector('form'));
+  assert.match(h.body.innerHTML,/href="https:\/\/saved.game\/"/);assert.match(h.body.innerHTML,/&lt;b&gt;Saved public summary&lt;\/b&gt;/);assert.doesNotMatch(h.body.innerHTML,/<b>Saved public summary/);
+  assert.doesNotMatch(h.body.innerHTML,/draft.game/);
+});
+
+test('legacy saved mission without socials never inherits another draft links or artwork',async()=>{
+  const h=fixture({quoteChanges:{mission:brief}});await h.window.RopadSolana.connect('phantom');await h.open();h.body.querySelector('form').values={...brief,website:'https://draft.game/'};await review(h,h.body.querySelector('form'));
+  assert.doesNotMatch(h.body.innerHTML,/draft.game|alt="AI-generated game cover"/);
 });

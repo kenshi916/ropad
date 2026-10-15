@@ -30,6 +30,19 @@ test('token page separates a public coin market, game page and creator workspace
   assert.doesNotMatch(html,/data-builder-action="(?:enqueue|concept|thumbnail|design)"|data-build-compute-slot|data-build-agent-slot/);
 });
 
+test('saved project social links and public copy are rendered independently of build instructions',()=>{
+  const h=fixture();h.build.token.description='Explore the skyline with friends';h.build.token.links={website:'https://skyline.game/?a=1&b=2',twitter:'https://x.com/skyline',telegram:'https://t.me/skyline',discord:'https://discord.gg/skyline'};
+  const html=h.api.render(h.build);assert.match(html,/aria-label="Project links"/);assert.match(html,/https:\/\/skyline.game\/\?a=1&amp;b=2/);assert.match(html,/noopener noreferrer nofollow/);assert.match(html,/Explore the skyline with friends/);assert.doesNotMatch(html,/Race across a rooftop city/);
+  for(const label of ['Website','X','Telegram','Discord'])assert.ok(html.includes('>'+label+' <span'));
+});
+
+test('public token pages omit unsafe or spoofed social destinations and do not invent missing links',()=>{
+  const h=fixture();assert.doesNotMatch(h.api.render(h.build),/aria-label="Project links"/);
+  for(const links of [{website:'javascript:alert(1)'},{website:'https://127.0.0.1/'},{website:'https://a:secret@site.com/'},{twitter:'https://x.com.evil.com/a'},{telegram:'https://elsewhere.com/a'},{discord:'https://elsewhere.com/a'}]){
+    h.build.token.links=links;assert.doesNotMatch(h.api.render(h.build),/aria-label="Project links"/);
+  }
+});
+
 test('prelaunch and devnet headers do not claim market values or invent trading data', () => {
   const h=fixture();h.set();
   for (const token of [undefined,{...h.build.token,cluster:'devnet'},{...h.build.token,verified:false}]) {
