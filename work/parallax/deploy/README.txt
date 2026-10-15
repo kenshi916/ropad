@@ -4,6 +4,24 @@ Prepared files only. Nothing has been deployed, purchased, restarted or changed
 in DNS. Docker is not available on the preparation host, so the image and Caddy
 configuration still require a container build and validation on the chosen host.
 
+Small-server profile
+The supplied Compose file targets an initial 1 vCPU / 1 GiB Ubuntu host running
+only Docker, Caddy and one Ropad Node process. It is a starter deployment, not a
+tested concurrent-user capacity claim. The app container is limited to 640 MiB,
+with a 384 MiB V8 heap; Caddy is limited to 128 MiB. The remaining physical RAM
+is for the OS and Docker. Buffers, native libraries, /tmp and the health-probe
+process also count toward container memory. Keep builds and Studio sessions on
+separate Windows/Mac workers; do not run desktop capture, a GUI or Studio here.
+Provision 1 GiB of host swap for installation/build peaks if the host has none,
+then monitor swap and memory pressure. Swap is not extra operating capacity.
+Build with no production traffic on the first deployment. For later updates,
+prefer building an image elsewhere and pulling it, or use an announced drained
+maintenance window; npm/Docker image builds compete for this small host's RAM.
+Check docker stats --no-stream and disk use after a real workload. Upgrade or
+reduce concurrency before memory pressure causes OOM restarts. Durable journals
+preserve uncertain work for review; an OOM restart is not evidence of a safe
+automatic retry. Do not enable unlimited paid generation on this starter host.
+
 Topology
 https://ropad.fun -> Caddy -> ONE Node process on internal port 61281.
 The same Node process serves the maintained frontend in work/parallax/dist and
@@ -49,6 +67,9 @@ First deployment on the selected Linux Docker host
      docker compose --env-file .env config --quiet
      docker compose --env-file .env build --pull app
      docker compose --env-file .env run --rm --no-deps caddy caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+   Never run docker compose config without --quiet in shared logs: rendered
+   environment values include credentials. No Docker socket is mounted in either
+   container, and port 61281 is exposed only on the private Compose network.
 6. After deployment authorization, start the single app and proxy:
      docker compose --env-file .env up -d
    The named volume is initialized from the image's node-owned state directory.
@@ -63,6 +84,15 @@ First deployment on the selected Linux Docker host
    locally referenced entrypoint assets, and absence of the old preview blocker.
    The output contains booleans and check names, never secret values or records.
    The Docker health check separately GETs /api/health using an allowed Host.
+   Before DNS cutover, the app alone can be tested without a public certificate:
+     docker compose --env-file .env up -d app
+     docker compose --env-file .env exec -T app node deploy/healthcheck.cjs
+     docker compose --env-file .env exec -T app node deploy/check-readiness.cjs
+   Exit 2 from readiness is expected while mainnet and other launch prerequisites
+   remain disabled; inspect its booleans instead of treating that as an app crash.
+   The app health check should still succeed. Caddy's certificate acquisition
+   requires the actual domain to reach the new server. Do not bypass TLS or
+   change the canonical origin merely to make a staging browser session work.
 8. Before routing public traffic, verify HTTPS, browser wallet authentication,
    creator authorization, CSRF rejection and a connected isolated Studio worker.
    Keep mainnet disabled through these checks. A successful health response is

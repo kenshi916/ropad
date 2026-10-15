@@ -334,3 +334,23 @@ test('HTTP publishing preparation and submission are owner scoped and require ex
  const published=await owner.req('/api/builds/'+b.id+'/publication/publish',{intentId:prepared.data.intentId,artifactHash:prepared.data.artifactHash});assert.equal(published.status,200,published.text);assert.equal(calls.length,2);assert.equal(calls[1].owner,calls[0].owner);assert.equal(published.data.publicAccessVerified,false);
  assert.equal(JSON.stringify(published.data).includes(calls[0].owner),false);
 });
+test('Studio connect uses the canonical public HTTPS origin after deployment and preserves local mode',async t=>{
+ const options={autonomousWorkers:false},h=await harness(t,options),owner=h.client(),b=await create(owner),route='/api/builds/'+b.id+'/connect';
+ const local=await owner.req(route,{});assert.equal(local.status,200,local.text);assert.equal(local.data.baseUrl,h.base);
+ options.runtimeConfig={publicOrigin:'https://ropad.fun',mainnetEnabled:false,defaultCluster:'devnet',solanaRpcUrl:'https://api.mainnet-beta.solana.com',operatorWallets:[]};await h.restart();
+ const deployed=await owner.req(route,{});assert.equal(deployed.status,200,deployed.text);assert.equal(deployed.data.baseUrl,'https://ropad.fun');assert.equal(deployed.data.bridgeUrl,'/api/builds/bridge');assert.notEqual(deployed.data.workerToken,local.data.workerToken);
+});
+test('direct metadata upload binds durable quotas to the verified wallet rather than a browser-supplied owner',async t=>{
+ const runtimeConfig={publicOrigin:'https://ropad.fun',mainnetEnabled:false,defaultCluster:'devnet',solanaRpcUrl:'https://api.mainnet-beta.solana.com',operatorWallets:[]};
+ const h=await harness(t,{runtimeConfig,verifySignature:async()=>true,autonomousWorkers:false}),owner=h.client(),other=h.client(),anonymous=h.client();
+ async function login(client,address){const c=await client.req('/api/auth/challenge',{address});assert.equal(c.status,200,c.text);const result=await client.req('/api/auth/verify',{id:c.data.id,signatureBase64:Buffer.alloc(64).toString('base64')});assert.equal(result.status,200,result.text);}
+ const input={name:'Original Game',symbol:'GAME',description:'Token artwork',imageUrl:'https://images.ropad.fun/game.png'};
+ assert.equal((await anonymous.req('/api/solana/metadata',input)).status,401);await login(owner,'1'.repeat(32));await login(other,'2'.repeat(32));
+ assert.equal((await owner.req('/api/solana/metadata',input,{'X-Parallax-Token':'wrong'})).status,403);
+ let first;for(let i=0;i<5;i++){const r=await owner.req('/api/solana/metadata',{...input,description:'version '+i,owner:'2'.repeat(32)});assert.equal(r.status,201,r.text);if(i===0)first=r.data;}
+ const limited=await owner.req('/api/solana/metadata',{...input,description:'version 6',owner:'3'.repeat(32)});assert.equal(limited.status,429,limited.text);
+ const reused=await owner.req('/api/solana/metadata',{...input,description:'version 0'});assert.equal(reused.status,201,reused.text);assert.equal(reused.data.metadataUri,first.metadataUri);
+ const independent=await other.req('/api/solana/metadata',{...input,description:'second wallet',owner:'1'.repeat(32)});assert.equal(independent.status,201,independent.text);
+ const uploads=JSON.parse(fs.readFileSync(path.join(h.directory,'token-metadata-usage.json'),'utf8')).uploads,hash=value=>require('node:crypto').createHash('sha256').update(value).digest('hex');
+ assert.equal(uploads.filter(row=>row.owner===hash('1'.repeat(32))).length,5);assert.equal(uploads.filter(row=>row.owner===hash('2'.repeat(32))).length,1);assert.equal(h.calls.length,0);
+});

@@ -2,7 +2,7 @@
 FROM node:24-bookworm-slim AS dependencies
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund && npm cache clean --force
+RUN NODE_OPTIONS=--max-old-space-size=384 npm ci --omit=dev --ignore-scripts --no-audit --no-fund && npm cache clean --force
 
 FROM node:24-bookworm-slim AS runtime
 ENV NODE_ENV=production PORT=61281 PARALLAX_STATE_DIR=/var/lib/ropad ROPAD_BIND_HOST=0.0.0.0

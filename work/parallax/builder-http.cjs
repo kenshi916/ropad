@@ -200,7 +200,7 @@ function createBuildRouter({stateDirectory,buildOutputTokens=6000,buildPlanMaxEs
       finally{designJobs.delete(id);}
       return true;
     }
-    if(action==='connect'){json(res,200,{...service.issueWorkerToken({id,owner}),baseUrl:'http://'+host,bridgeUrl:'/api/builds/bridge'});return true;}
+    if(action==='connect'){json(res,200,{...service.issueWorkerToken({id,owner}),baseUrl:publicOrigin||'http://'+host,bridgeUrl:'/api/builds/bridge'});return true;}
     if(action==='screen'){json(res,200,service.screenshot({id,owner,bytes:await bytes(req),contentType:req.headers['content-type']}));return true;}
     if(action==='screen-stop'){if(service.stopScreen)service.stopScreen({id,owner});json(res,200,{stopped:true});return true;}
     throw fail('Unknown build action',404);

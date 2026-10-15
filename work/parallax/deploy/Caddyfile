@@ -22,3 +22,8 @@
     }
   }
 }
+
+# Keep wallet sessions on the canonical origin when visitors use www.
+www.{$ROPAD_DOMAIN} {
+  redir https://{$ROPAD_DOMAIN}{uri} permanent
+}

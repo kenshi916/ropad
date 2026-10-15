@@ -17,7 +17,7 @@ async function* parseSSE(body){let buffer='';const decoder=new TextDecoder();for
 function createApp({key=process.env.OPENROUTER_API_KEY||'',orbioKey=process.env.ORBIO_API_KEY||'',provider=process.env.PARALLAX_AI_PROVIDER||'openrouter',fetcher=fetch,port=61281,budget=1,models:initialModels,stateDirectory=null,monitor=false,cameraWorkers=true,autonomousWorkers=true,agentInterval=2000,devnetService=null,verifySignature=null,now=Date.now,workerInterval=15000,orbioService=null,orbioLaunchService=null,orbioTradeService=null,solanaMarketService=null,sponsorDailyUsd=1,computeLedger=null,feeAccountingService=null,feeAccountingConfig=null,runtimeConfig=null,pumpLaunchService=null,publishingService=null,robloxOAuthConfig=null}={}){
   const robloxTrends=require('./roblox-trends.cjs').createRobloxTrendsService({fetcher,now});
   const settings=runtimeConfig||require('./runtime-config.cjs').readRuntimeConfig({stateDirectory});
-  const metadata=require('./token-metadata.cjs').createTokenMetadataService({stateDirectory,publicOrigin:settings.publicOrigin});
+  const metadata=require('./token-metadata.cjs').createTokenMetadataService({stateDirectory,publicOrigin:settings.publicOrigin,now});
   const originFor=host=>settings.publicOrigin&&new URL(settings.publicOrigin).host===host?settings.publicOrigin:'http://'+host;
   const accountOAuth=robloxOAuthConfig||{clientId:process.env.ROBLOX_OAUTH_CLIENT_ID||'',clientSecret:process.env.ROBLOX_OAUTH_CLIENT_SECRET||'',redirectUri:process.env.ROBLOX_OAUTH_REDIRECT_URI||''};
   let robloxAccounts;
@@ -306,7 +306,10 @@ function createApp({key=process.env.OPENROUTER_API_KEY||'',orbioKey=process.env.
     // This exact callback only serves a static completion page. Code exchange
     // still requires a same-origin POST, CSRF token and original wallet session.
     const robloxCallback=req.method==='GET'&&/^\/roblox\/oauth\/callback(?:\?|$)/.test(req.url);
-    if(req.headers['sec-fetch-site']==='cross-site'&&!req.url.startsWith('/public/tokens/')&&!publicArtwork&&!robloxCallback){json(res,403,{error:'Cross-site requests are disabled.'});return;}
+    // External links may open the public app, but cannot use navigation headers
+    // to read account APIs or bypass the same-origin mutation checks below.
+    const publicNavigation=req.method==='GET'&&req.headers['sec-fetch-mode']==='navigate'&&req.headers['sec-fetch-dest']==='document'&&/^\/(?:index\.html)?(?:\?|$)/.test(req.url);
+    if(req.headers['sec-fetch-site']==='cross-site'&&!req.url.startsWith('/public/tokens/')&&!publicArtwork&&!robloxCallback&&!publicNavigation){json(res,403,{error:'Cross-site requests are disabled.'});return;}
     let url;try{url=new URL(req.url,'http://'+host);}catch{json(res,400,{error:'Invalid URL.'});return;}
     try{
       rollover();
@@ -370,7 +373,7 @@ function createApp({key=process.env.OPENROUTER_API_KEY||'',orbioKey=process.env.
         json(res,200,getLaunchArtwork().get({owner:auth.owner(req),id:artworkRoute[1]}));return;
       }
       if(url.pathname==='/api/solana/metadata'&&req.method==='POST'){
-        authorizeMutation(req,host);auth.owner(req);const input=await readJson(req,2900000);json(res,201,metadata.create(input));return;
+        authorizeMutation(req,host);const owner=auth.owner(req),input=await readJson(req,2900000);json(res,201,metadata.create(input,{owner}));return;
       }
       if(url.pathname.startsWith('/api/builds')&&await getBuildRouter()(req,res,url,host))return;
       if(url.pathname==='/api/solana/launches/config'&&req.method==='GET'){json(res,200,getSolanaLaunches().config());return;}
